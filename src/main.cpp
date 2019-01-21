@@ -36,43 +36,29 @@ Point P(double a,double b){
 Point P(Point ab) {return P(ab.x,ab.y);}
 
 /// Inverse transformation of P
-Point invP(Point p) {
-	double x = p.x, y = p.y,
-	   x00 = corners[0].x, x01 = corners[1].x, x10 = corners[2].x, x11 = corners[3].x,
-	   y00 = corners[0].y, y01 = corners[1].y, y10 = corners[2].y, y11 = corners[3].y;
+Point invP(Point p,int iter=5){
+	double const px = p.x, py = p.y,
+	   p1x = corners[0].x, p2x = corners[1].x, p3x = corners[3].x, p4x = corners[2].x,
+	   p1y = corners[0].y, p2y = corners[1].y, p3y = corners[3].y, p4y = corners[2].y;
 
-	// substition 1 ( see. derivation )
-	double dx0 = x01 - x00;
-	double dx1 = x11 - x10;
-	double dy0 = y01 - y00;
-	double dy1 = y11 - y10;
+	// https://stackoverflow.com/a/18332009
+    double ss = 0.5, tt = 0.5;
+	for(int k=0;k<iter;++k){
+        double r1 = p1x*(1-ss)*(1-tt) + p2x*ss*(1-tt) + p3x*ss*tt + p4x*(1-ss)*tt - px;
+        double r2 = p1y*(1-ss)*(1-tt) + p2y*ss*(1-tt) + p3y*ss*tt + p4y*(1-ss)*tt - py;
 
-	// substitution 2 ( see. derivation )
-	double x00x = x00 - x;
-	double xd   = x10 - x00;
-	double dxd  = dx1 - dx0;
-	double y00y = y00 - y;
-	double yd   = y10 - y00;
-	double dyd  = dy1 - dy0;
+        double J11 = -p1x*(1-tt) + p2x*(1-tt) + p3x*tt - p4x*tt;
+        double J21 = -p1y*(1-tt) + p2y*(1-tt) + p3y*tt - p4y*tt;
+        double J12 = -p1x*(1-ss) - p2x*ss + p3x*ss + p4x*(1-ss);
+        double J22 = -p1y*(1-ss) - p2y*ss + p3y*ss + p4y*(1-ss);
 
-	// solution of quadratic equations
-	double c =   x00x*yd - y00y*xd;
-	double b =   dx0*yd  + dyd*x00x - dy0*xd - dxd*y00y;
-	double a =   dx0*dyd - dy0*dxd;
-	double D2 = b*b - 4*a*c;
-	double D  = std::sqrt( D2 );
-	double u1 = (-b + D)/(2*a);
-	double u2 = (-b - D)/(2*a);
+        double inv_detJ = 1/(J11*J22 - J12*J21);
 
-	double u=std::abs(u1-0.5)<std::abs(u2-0.5)?u1:u2;
+        ss = ss - inv_detJ*(J22*r1 - J12*r2);
+        tt = tt - inv_detJ*(-J21*r1 + J11*r2);
+	}
 
-	// backsubstitution of "u" to obtain "v"
-	double v;
-
-	double denom_x = xd + u*dxd;
-	double denom_y = yd + u*dyd;
-	if( std::abs(denom_x)>std::abs(denom_y) ){  v = -( x00x + u*dx0 )/denom_x;  }else{  v = -( y00y + u*dy0 )/denom_y;  }
-	return {u*maxA, v*maxB};
+	return {ss*maxA,tt*maxB};
 }
 
 std::vector<std::vector<Uint8>> pxval;
