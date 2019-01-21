@@ -358,10 +358,26 @@ int main(){
 		return 1;
 	}
 
-	corners[0]={0,0};
-	corners[1]={0,height};
-	corners[2]={width,0};
-	corners[3]={width,height};
+	bool save_config;
+	{
+		std::ifstream config_f("config.txt");
+		save_config=(bool)config_f;
+		if(config_f){
+			for(auto& p:corners)
+				config_f>>p.x>>p.y;
+		}
+		if(!config_f // empty file or read failed
+				|| std::any_of(corners.begin(),corners.end(),[=](SDL_Point p){
+					return p.x<0||p.x>width||p.y<0||p.y>height;
+					}) // invalid coordinate
+				){
+			corners[0]={0,0};
+			corners[1]={0,height};
+			corners[2]={width,0};
+			corners[3]={width,height};
+		}
+		config_f.close();
+	}
 
 	render();
 
@@ -434,7 +450,6 @@ int main(){
 move_corner:
 				int x,y;
 				SDL_GetMouseState(&x,&y);
-				std::cout<<"m "<<cornerIndex<<'\n';
 				corners[cornerIndex]={x,y};
 				render();
 				break;
@@ -515,6 +530,12 @@ move_corner:
 			}
 			break;
 		}
+	}
+
+	if(save_config){
+		std::ofstream config_f("config.txt");
+		for(auto& p:corners)
+			config_f<<p.x<<' '<<p.y<<'\n';
 	}
 
 	SDL_DestroyTexture(image);

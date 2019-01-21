@@ -2,9 +2,10 @@
 
 Read pixel values from a picture of a (low-resolution) LCD screen.
 
-Originally developed to read 
-
-Usage: Read input from `in.png`, output binary data to `out.txt`.
+Usage:
+* Read input from `in.png`, output binary data to `out.txt`.
+* If a file `config.txt` exists, the positions of the corners position are saved to/
+  loaded from that file. If the file is empty, default configuration is used.
 
 Keyboard shortcuts:
 
