@@ -109,7 +109,7 @@ void draw_grid(){
 
 std::vector<std::vector<std::vector<SDL_Point>>> ptListFull,ptlist;
 void computePtList(){
-	double constexpr min_border=0.3,max_border=0.7;
+	double constexpr min_border=0.2,max_border=0.8;
 
 	ptListFull.assign(maxA,std::vector<std::vector<SDL_Point>>(maxB));
 	ptlist.assign(maxA,std::vector<std::vector<SDL_Point>>(maxB));
@@ -140,11 +140,10 @@ void computePtList(){
 
 std::vector<std::vector<Uint8>> medColor;
 /// Compute the median color in each cell. Return the uncertainty value.
-double computeMedColor(){
+void computeMedColor(){
 	computePtList();
 
 	std::array<unsigned,256> cnt;
-	double uncertainty=0;
 	medColor.resize(maxA);
 	for(int a=0;a<maxA;++a){
 		medColor[a].resize(maxB);
@@ -159,15 +158,15 @@ double computeMedColor(){
 				max_pxv=std::max(max_pxv,pxv);
 				++cnt[pxv];
 			}
-			double mean_pxv=sum_pxv/(double)ptlist[a][b].size();
-			uncertainty+=std::min(max_pxv-mean_pxv,mean_pxv-min_pxv);
 
 			if(ptlist[a][b].size()==0){
 				std::cout<<"empty cell\n";
-				return -1;
+				return;
 			}
 
-			auto x=ptlist[a][b].size()/2;
+			// Bias towards high value (white). A black cell must be black, while a
+			// white cell may be partially black because of shadow.
+			auto x=ptlist[a][b].size()*4/5; 
 			for(unsigned r=0;;++r){
 				if(cnt[r]>x){
 					medColor[a][b]=r;
@@ -177,9 +176,6 @@ double computeMedColor(){
 			}
 		}
 	}
-
-	std::cout<<"u="<<uncertainty<<'\n';
-	return uncertainty;
 }
 
 /// Binarized value correspond to the pixels, in row-major order.
@@ -187,75 +183,55 @@ double computeMedColor(){
 std::vector<signed char> data;
 int edge_threshold=13;
 
+// Helper function for binarize.
+// f is invoked with coordinates of cells with chessboard distance
+// from (a,b) <= 2 (including the cell (a,b) itself)
+template<class Fn>
+void for_near_cells(int a,int b,Fn const& f){
+	for(int a1=std::max(0,a-2);a1<a2+3&&a1<maxA;++a1)
+	for(int b1=std::max(0,b-2);b1<b2+3&&b1<maxB;++b1)
+		f(a1,b1);
+}
+
+// Helper function for binarize.
+void dfs_data(int a,int b){
+	for(int a1=std::max(0,a-2);a1<a2+3&&a1<maxA;++a1)
+	for(int b1=std::max(0,b-2);b1<b2+3&&b1<maxB;++b1){
+		if(pxval[a1][b1]<0){
+			pxval[a1][b1]=pxval[a][b];
+			dfs_data(a1,b1);
+		}
+	}
+}
+
 /// Compute (data) based on (medColor) and (edge_threshold).
 void binarize(){
 	computeMedColor();
 
-	struct DiffPair{
-		// a is 1 (darker), b is 0, their difference in color is delta
-		int a,b,delta;
-	};
-	std::vector<DiffPair> adjacentPairs;
-	for(int row=1;row<maxA;++row)
-	for(int col=0;col<maxB;++col){
-		int x1=row*maxB+col;
-		int v1=medColor[row][col];
-		int x2=(row-1)*maxB+col;
-		int v2=medColor[row-1][col];
-		if(v1>v2)
-			adjacentPairs.push_back({x2,x1,v1-v2});
-		else
-			adjacentPairs.push_back({x1,x2,v2-v1});
-	}
-	for(int row=0;row<maxA;++row)
-	for(int col=1;col<maxB;++col){
-		int x1=row*maxB+col;
-		int v1=medColor[row][col];
-		int x2=row*maxB+(col-1);
-		int v2=medColor[row][col-1];
-		if(v1>v2)
-			adjacentPairs.push_back({x2,x1,v1-v2});
-		else
-			adjacentPairs.push_back({x1,x2,v2-v1});
-	}
-
 	data.assign(maxA*maxB,-1);
-	/*
-	std::sort(adjacentPairs.begin(),adjacentPairs.end(),[](DiffPair x,DiffPair y){
-			return x.delta>y.delta;});
-			*/
 
-	bool valid=true;
-	for(DiffPair p:adjacentPairs)
-	if(p.delta>=edge_threshold){
-		if(data[p.a]==0||data[p.b]==1)
-			valid=false;
-		data[p.a]=1;
-		data[p.b]=0;
+	for(int a=0;a<maxA;++a)
+	for(int b=0;b<maxB;++b){
+		int pxv=pxval[a][b];
+		for(int a1=std::max(0,a-2);a1<a2+3&&a1<maxA;++a1)
+		for(int b1=std::max(0,b-2);b1<b2+3&&b1<maxB;++b1){
+			int pxv1=pxv1[a1][b1];
+			if(pxv>pxv1+edge_threshold){
+				data[a*maxB+b]=0;
+				goto determined;
+			}else if(pxv<pxv1-edge_threshold){
+				data[a*maxB+b]=1;
+				goto determined;
+			}
+		}
+determined:;
 	}
 
-	auto fill=[&](int a,int b){
-		if(data[a]>=0&&data[b]<0)
-			data[b]=data[a];
-	};
-
-	for(int row=1;row<maxA;++row)
-		for(int col=0;col<maxB;++col)
-			fill((row-1)*maxB+col,row*maxB+col);
-
-	for(int row=maxA-1;row!=0;--row)
-		for(int col=0;col<maxB;++col)
-			fill(row*maxB+col,(row-1)*maxB+col);
-
-	for(int row=0;row<maxA;++row){
-		for(int col=maxB-1;col!=0;--col)
-			fill(row*maxB+col,row*maxB+(col-1));
-		for(int col=1;col<maxB;++col)
-			fill(row*maxB+(col-1),row*maxB+col);
+	for(int a=0;a<maxA;++a)
+	for(int b=0;b<maxB;++b){
+		if(data[a*maxB+b]>=0)
+			dfs_data(data);
 	}
-
-	if(!valid)
-		std::cout<<"invalid!\n";
 }
 
 bool preview_binary=true;
