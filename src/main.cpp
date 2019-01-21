@@ -109,7 +109,7 @@ void draw_grid(){
 
 std::vector<std::vector<std::vector<SDL_Point>>> ptListFull,ptlist;
 void computePtList(){
-	double constexpr min_border=0.3,max_border=0.7;
+	double min_border=0.1,max_border=0.9;
 
 	ptListFull.assign(maxA,std::vector<std::vector<SDL_Point>>(maxB));
 	ptlist.assign(maxA,std::vector<std::vector<SDL_Point>>(maxB));
@@ -139,6 +139,7 @@ void computePtList(){
 }
 
 std::vector<std::vector<Uint8>> medColor;
+unsigned location=100;
 /// Compute the median color in each cell. Return the uncertainty value.
 double computeMedColor(){
 	computePtList();
@@ -167,7 +168,7 @@ double computeMedColor(){
 				return -1;
 			}
 
-			auto x=ptlist[a][b].size()/2;
+			auto x=unsigned(ptlist[a][b].size()*location/128);
 			for(unsigned r=0;;++r){
 				if(cnt[r]>x){
 					medColor[a][b]=r;
@@ -459,6 +460,20 @@ move_corner:
 			case SDLK_a:
 				/// Automatically adjust
 				std::cout<<"unimplemented\n";
+				break;
+
+			case SDLK_5:
+				if(location==1)break;
+				--location;
+				std::cout<<"l="<<location<<'\n';
+				render();
+				break;
+
+			case SDLK_6:
+				if(location==127)break;
+				++location;
+				std::cout<<"l="<<location<<'\n';
+				render();
 				break;
 
 			case SDLK_7:
