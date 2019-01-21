@@ -15,5 +15,6 @@ Keyboard shortcuts:
 * `78`: Change preview binary opacity.
 * `90`: Change edge.
 * `P`: Toggle preview/grid.
+* `T`: Toggle showing only image.
 * `B`: Toggle preview binary/median color.
 * `O`: Output.

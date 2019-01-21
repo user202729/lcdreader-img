@@ -286,12 +286,15 @@ void draw_preview(){
 }
 
 bool preview=false;
+bool image_only=false;
 void render(){
 	draw_image();
-	if(preview)
-		draw_preview();
-	else
-		draw_grid();
+	if(!image_only){
+		if(preview)
+			draw_preview();
+		else
+			draw_grid();
+	}
 	SDL_RenderPresent(renderer);
 }
 
@@ -483,6 +486,12 @@ move_corner:
 				if(edge_threshold==255)break;
 				++edge_threshold;
 				std::cout<<"t="<<edge_threshold<<'\n';
+				render();
+				break;
+
+			case SDLK_t:
+				/// Show only image - toggle
+				image_only^=true;
 				render();
 				break;
 
