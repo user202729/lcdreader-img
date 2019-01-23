@@ -265,6 +265,8 @@ void binarize(){
 	need_binarize=false;
 }
 
+std::vector<signed char> data_manual(maxA*maxB,-1);
+
 bool preview_binary=true;
 int preview_alpha=35;
 void draw_preview(){
@@ -277,7 +279,7 @@ void draw_preview(){
 	for(int a=0;a<maxA;++a)
 	for(int b=0;b<maxB;++b){
 		if(preview_binary){
-			if(data[a*maxB+b])
+			if(data_manual[a*maxB+b]>=0?data_manual[a*maxB+b]:data[a*maxB+b])
 				SDL_SetRenderDrawColor(renderer,0,0,255,preview_alpha); // blue
 			else
 				SDL_SetRenderDrawColor(renderer,255,255,255,preview_alpha); // white
@@ -520,6 +522,21 @@ move_corner:
 				render();
 				break;
 
+			case SDLK_z:
+			case SDLK_x:
+			{
+				/// Manually change the pixel at the cursor to 0/1
+				int x,y;
+				SDL_GetMouseState(&x,&y);
+				Point point=invP({(double)x,(double)y});
+				auto a=(int)std::floor(point.x),b=(int)std::floor(point.y);
+				if(a<0||a>=maxA||b<0||b>=maxB)
+					break;
+				data_manual[a*maxB+b]=event.key.keysym.sym==SDLK_x?1:0;
+				render();
+				break;
+			}
+
 			case SDLK_o:
 				/// Output
 			{
@@ -527,8 +544,10 @@ move_corner:
 
 				int i=0;
 				for(int row=0;row<maxA;++row){
-					for(int col=0;col<maxB;++col)
-						out<<(data[i++]?'1':'0');
+					for(int col=0;col<maxB;++col){
+						out<<((data_manual[i]>=0?data_manual[i]:data[i])?'1':'0');
+						++i;
+					}
 					out<<'\n';
 				}
 				out.close();
