@@ -187,8 +187,13 @@ double computeMedColor(){
 std::vector<signed char> data;
 int edge_threshold=13;
 
+bool need_binarize=true;
+
 /// Compute (data) based on (medColor) and (edge_threshold).
 void binarize(){
+	if(!need_binarize)
+		return;
+
 	computeMedColor();
 
 	struct DiffPair{
@@ -256,6 +261,8 @@ void binarize(){
 
 	if(!valid)
 		std::cout<<"invalid!\n";
+
+	need_binarize=false;
 }
 
 bool preview_binary=true;
@@ -402,6 +409,7 @@ int main(){
 				if(dx*dx+dy*dy<=20*20){
 					heldCorner=i;
 					corners[i]=mouse;
+					need_binarize=true;
 					render();
 					break;
 				}
@@ -418,6 +426,7 @@ int main(){
 			if(heldCorner<0)break;
 			SDL_Point mouse{event.button.x,event.button.y};
 			corners[heldCorner]=mouse;
+			need_binarize=true;
 			render();
 			break;
 		}
@@ -440,6 +449,7 @@ move_corner:
 				int x,y;
 				SDL_GetMouseState(&x,&y);
 				corners[cornerIndex]={x,y};
+				need_binarize=true;
 				render();
 				break;
 			}
@@ -478,6 +488,7 @@ move_corner:
 			case SDLK_9:
 				if(edge_threshold==0)break;
 				--edge_threshold;
+				need_binarize=true;
 				std::cout<<"t="<<edge_threshold<<'\n';
 				render();
 				break;
@@ -485,6 +496,7 @@ move_corner:
 			case SDLK_0:
 				if(edge_threshold==255)break;
 				++edge_threshold;
+				need_binarize=true;
 				std::cout<<"t="<<edge_threshold<<'\n';
 				render();
 				break;
