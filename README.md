@@ -26,3 +26,4 @@ Keyboard shortcuts:
 * `Z`: Set the pixel under the cursor to 0.
 * `X`: Set the pixel under the cursor to 1.
 * `O`: Output.
+* `N`: Go to next video frame.

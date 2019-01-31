@@ -104,18 +104,26 @@ int main(int argc,char** argv){
 	}
 
 	iter=args.find("f");
-	if(iter==args.end())
-		image=cv::imread("in.png");
-	else
-		image=cv::imread(iter->second);
-	if(!image.data){
-		std::cerr<<"imread failed\n";
+	if(iter==args.end()){
+		std::cerr<<"No file name\n";
 		return 1;
 	}
 
-	int width =image.cols;
-	int height=image.rows;
+	cv::VideoCapture capture(iter->second);
+	if(!capture.isOpened()){
+		std::cerr<<"Can't open video\n";
+		return 1;
+	}
 
+	auto
+		width  = (int)capture.get(cv::CAP_PROP_FRAME_WIDTH),
+		height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT);
+		// nframe = (int)capture.get(cv::CAP_PROP_FRAME_COUNT);
+
+	if(!capture.read(image)){
+		std::cerr<<"File has no frame\n";
+		return 1;
+	}
 	grid.setImage(image);
 
 	cv::namedWindow(window_name,cv::WINDOW_AUTOSIZE);
@@ -261,6 +269,15 @@ change_pixel:
 				out.close();
 				break;
 			}
+
+			case 'n':
+				if(!capture.read(image)){
+					std::cout<<"End of file\n";
+					break;
+				}
+				grid.setImage(image);
+				render();
+				break;
 		}
 	}
 break_outer:
