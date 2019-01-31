@@ -10,6 +10,7 @@
 
 #include<opencv2/core.hpp>
 #include<opencv2/highgui.hpp>
+#include<opencv2/imgproc.hpp>
 
 #include"Grid.h"
 
@@ -268,18 +269,19 @@ change_pixel:
 			case 'o':
 				/// Output
 			{
-				std::ofstream out("out.txt");
-
-				int i=0;
-				for(int row=0;row<grid.getMaxA();++row){
-					for(int col=0;col<grid.getMaxB();++col){
-						out<<(grid.getData(row,col)?'1':'0');
-						++i;
-					}
-					out<<'\n';
+				std::ofstream out("out.txt",std::ios::binary);
+				while(capture.read(image)){
+					cv::cvtColor(image,image,cv::COLOR_BGR2GRAY);
+					grid.setImage(image);
+					cv::Mat screen=grid.extractScreen(1);
+					assert(screen.rows==grid.getMaxA());
+					assert(screen.cols==grid.getMaxB());
+					for(int a=0;a<screen.rows;++a)
+					for(int b=0;b<screen.cols;++b)
+						out<<(unsigned char)screen.at<uint8_t>(a,b);
 				}
 				out.close();
-				break;
+				goto break_outer;
 			}
 
 			case 'n':
