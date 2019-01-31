@@ -3,9 +3,16 @@
 Read pixel values from a picture of a (low-resolution) LCD screen.
 
 Usage:
-* Read input from `in.png`, output binary data to `out.txt`.
+* Read input from `in.png` (or the file specified on the command line),
+  output binary data to `out.txt`.
 * If a file `config.txt` exists, the positions of the corners position are saved to/
   loaded from that file. If the file is empty, default configuration is used.
+
+Command-line shortcut:
+* Format: `key=value`
+* Possible key values:
+    * `f`: file name.
+	* `w`, `h`: grid width/height.
 
 Keyboard shortcuts:
 

@@ -7,11 +7,14 @@
 #include<opencv2/core.hpp>
 
 struct Grid{
+	Grid();
+
 	cv::Point getCorner(int index) const {return corners[index];}
 	void setCorner(int index,cv::Point);
 
 	int getMaxA() const{return maxA;}
 	int getMaxB() const{return maxB;}
+	void setGridSize(int a,int b);
 
 	/// Bilinear interpolation: [0..maxA] * [0..maxB] -> quadrilateral formed by corners
 	/// matrix (a points down, b points right) --P--> (x points right, y points down)
@@ -52,20 +55,20 @@ struct Grid{
 
 private:
 	std::array<cv::Point,4> corners; // ul,dl,ur,dr
-	int maxA=12,maxB=56;
+	int maxA,maxB;
 
 	std::vector<std::vector<uint8_t>> pxval;
-	bool pxval_cached=true;
+	bool pxval_cached;
 
 	std::vector<std::vector<uint8_t>> medColor;
-	bool med_color_cached=true;
+	bool med_color_cached;
 
 	std::vector<std::vector<std::vector<cv::Point>>> ptlist;
-	bool ptlist_cached=true;
+	bool ptlist_cached;
 
 	/// Binarized value correspond to the pixels, in row-major order.
 	/// Light (high value): 0, dark (low value): 1.
 	std::vector<signed char> data,data_manual;
-	int edge_threshold=13;
-	bool binarize_cached=true;
+	int edge_threshold;
+	bool binarize_cached;
 };

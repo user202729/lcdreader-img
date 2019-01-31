@@ -5,11 +5,28 @@
 
 #include<opencv2/imgproc.hpp>
 
+Grid::Grid():edge_threshold(13){
+	setGridSize(31,48);
+}
+
 void Grid::setCorner(int index,cv::Point point){
 	corners[index]=point;
 	med_color_cached=false;
 	ptlist_cached=false;
 	binarize_cached=false;
+}
+
+void Grid::setGridSize(int a,int b){
+	assert(a>0);
+	assert(b>0);
+	maxA=a;maxB=b;
+
+	med_color_cached=false;
+	ptlist_cached=false;
+	binarize_cached=false;
+
+	data.resize(a*b);
+	data_manual.assign(a*b,-1);
 }
 
 cv::Point2d Grid::P(double a,double b){
@@ -211,9 +228,9 @@ void Grid::binarize(){
 			adjacentPairs.push_back({x1,x2,v2-v1});
 	}
 
+	assert((int)data.size()==maxA*maxB);
+	assert(data.size()==data_manual.size());
 	data.assign(maxA*maxB,-1);
-	if(data_manual.size()!=data.size())
-		data_manual.assign(data.size(),-1);
 	/*
 	std::sort(adjacentPairs.begin(),adjacentPairs.end(),[](DiffPair x,DiffPair y){
 			return x.delta>y.delta;});

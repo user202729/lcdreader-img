@@ -2,6 +2,8 @@
 #include<fstream>
 #include<vector>
 #include<array>
+#include<map>
+#include<string>
 #include<algorithm>
 #include<cstdlib>
 #include<cassert>
@@ -67,8 +69,28 @@ void mouseCallback(int event,int x,int y,int,void*){
 	}
 }
 
-int main(){
-	image=cv::imread("in.png");
+int main(int argc,char** argv){
+	std::map<std::string,std::string> args;
+	for(int i=1;i<argc;++i){
+		std::string arg=argv[i];
+		auto index=arg.find('=');
+		if(index==std::string::npos){
+			std::cerr<<"Invalid arguments\n";
+			return 1;
+		}
+		args[arg.substr(0,index)]=arg.substr(index+1);
+	}
+
+	auto iter=args.find("w");
+	if(iter!=args.end()){
+		grid.setGridSize(std::stoi(iter->second),std::stoi(args.at("h")));
+	}
+
+	iter=args.find("f");
+	if(iter==args.end())
+		image=cv::imread("in.png");
+	else
+		image=cv::imread(iter->second);
 	if(!image.data){
 		std::cerr<<"imread failed\n";
 		return 1;
