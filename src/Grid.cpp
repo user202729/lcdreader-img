@@ -105,6 +105,9 @@ void Grid::draw_preview(SDL_Renderer* renderer,int preview_alpha){
 }
 
 void Grid::computePtList(){
+	if(ptlist_cached)
+		return;
+
 	double constexpr min_border=0.3,max_border=0.7;
 
 	ptListFull.assign(maxA,std::vector<std::vector<SDL_Point>>(maxB));
@@ -132,9 +135,14 @@ void Grid::computePtList(){
 			continue;
 		ptlist[a][b].push_back({x,y});
 	}
+
+	ptlist_cached=true;
 }
 
 void Grid::computeMedColor(){
+	if(med_color_cached)
+		return;
+
 	computePtList();
 
 	std::array<unsigned,256> cnt;
@@ -168,6 +176,8 @@ void Grid::computeMedColor(){
 			}
 		}
 	}
+
+	med_color_cached=true;
 }
 
 void Grid::binarize(){
