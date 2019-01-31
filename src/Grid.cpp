@@ -3,21 +3,23 @@
 #include<iostream>
 #include<cassert>
 
-void Grid::setCorner(int index,SDL_Point point){
+#include<opencv2/imgproc.hpp>
+
+void Grid::setCorner(int index,cv::Point point){
 	corners[index]=point;
 	med_color_cached=false;
 	ptlist_cached=false;
 	binarize_cached=false;
 }
 
-Point Grid::P(double a,double b){
-	Point
-		u = (Point(corners[1]) - corners[0]) * a / maxA + corners[0],
-		d = (Point(corners[3]) - corners[2]) * a / maxA + corners[2];
+cv::Point2d Grid::P(double a,double b){
+	cv::Point2d
+		u = cv::Point2d(corners[1] - corners[0]) * a / maxA + cv::Point2d(corners[0]),
+		d = cv::Point2d(corners[3] - corners[2]) * a / maxA + cv::Point2d(corners[2]);
 	return u + (d - u) * b / maxB;
 }
 
-Point Grid::invP(Point p){
+cv::Point2d Grid::invP(cv::Point2d p){
 	int constexpr iter=5;
 
 	double const px = p.x, py = p.y,
@@ -44,64 +46,61 @@ Point Grid::invP(Point p){
 	return {ss*maxA,tt*maxB};
 }
 
-void Grid::compute_pxval(SDL_Surface* image_surface){
+void Grid::compute_pxval(cv::Mat const image){
 	med_color_cached=false;
 	binarize_cached=false;
 
-	int const width=image_surface->w;
-	int const height=image_surface->h;
-
-	std::cout<<"format="<<SDL_GetPixelFormatName(image_surface->format->format)<<'\n';
-	if(image_surface->format->BytesPerPixel!=4||
-			image_surface->pitch!=width*4){
-		std::cerr<<"Unsupported image format\n";
-		return;
-	}
-
-	SDL_LockSurface(image_surface);
-	pxval.resize(height);
-	auto pixel_ptr=(Uint32*)image_surface->pixels;
-	for(int row=0;row<height;++row){
-		pxval[row].resize(width);
-		for(int col=0;col<width;++col,++pixel_ptr){
-			Uint8 r,g,b;
-			SDL_GetRGB(*pixel_ptr,image_surface->format,&r,&g,&b);
-			pxval[row][col]=(r+g+b)/3;
-			// *pixel_ptr=SDL_MapRGB(image_surface->format,x,x,x);
+	pxval.resize(image.rows);
+	for(int row=0;row<image.rows;++row){
+		pxval[row].resize(image.cols);
+		for(int col=0;col<image.cols;++col){
+			auto color=image.at<cv::Vec3b>(row,col);
+			pxval[row][col]=(color[0]+color[1]+color[2])/3;
 		}
 	}
-	SDL_UnlockSurface(image_surface);
 
 	pxval_cached=true;
 }
 
-void Grid::draw(SDL_Renderer* renderer){
-	SDL_SetRenderDrawColor(renderer,0,0,0,SDL_ALPHA_OPAQUE);
+void Grid::draw(cv::Mat image){
 	for (int b = 0; b <= maxB; ++b) { // draw vertical lines
 		auto p1=P(0,b),p2=P(maxA,b);
-		SDL_RenderDrawLine(renderer,p1.x,p1.y,p2.x,p2.y);
+		cv::line(image,p1,p2,cv::Scalar(0,0,0));
 	}
 	for (int a = 0; a <= maxA; ++a) { // draw horizontal lines
 		auto p1=P(a,0),p2=P(a,maxB);
-		SDL_RenderDrawLine(renderer,p1.x,p1.y,p2.x,p2.y);
+		cv::line(image,p1,p2,cv::Scalar(0,0,0));
 	}
 }
 
-void Grid::draw_preview(SDL_Renderer* renderer,int preview_alpha){
+void Grid::draw_preview(cv::Mat image){
 	binarize();
 	computePtList();
 
 	for(int a=0;a<maxA;++a)
 	for(int b=0;b<maxB;++b){
+		cv::Scalar color;
 		if(data_manual[a*maxB+b]>=0?data_manual[a*maxB+b]:data[a*maxB+b])
-			SDL_SetRenderDrawColor(renderer,0,0,255,preview_alpha); // blue
+			color={255,0,0}; // blue
 		else
-			SDL_SetRenderDrawColor(renderer,255,255,255,preview_alpha); // white
-		SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_BLEND);
+			color={255,255,255}; // white
 
-		auto const& ptl=ptListFull[a][b];
-		SDL_RenderDrawPoints(renderer,ptl.data(),ptl.size());
+		cv::Point pt[4]={P(a,b),P(a+1,b),P(a+1,b+1),P(a,b+1)};
+		cv::Point const* pts[1]={pt};
+		int npts[1]={4};
+		cv::fillPoly(image,pts,npts,1,color);
 	}
+}
+
+cv::Mat Grid::draw_preview(cv::Mat const image,double alpha){
+	assert(alpha>=0&&alpha<=1);
+
+	cv::Mat dest;
+	image.copyTo(dest);
+	draw_preview(dest);
+
+	cv::addWeighted(dest,alpha,image,1-alpha,0,dest);
+	return dest;
 }
 
 void Grid::computePtList(){
@@ -110,8 +109,7 @@ void Grid::computePtList(){
 
 	double constexpr min_border=0.3,max_border=0.7;
 
-	ptListFull.assign(maxA,std::vector<std::vector<SDL_Point>>(maxB));
-	ptlist.assign(maxA,std::vector<std::vector<SDL_Point>>(maxB));
+	ptlist.assign(maxA,std::vector<std::vector<cv::Point>>(maxB));
 
 	int min_x=corners[0].x,max_x=corners[0].x;
 	int min_y=corners[0].y,max_y=corners[0].y;
@@ -124,11 +122,10 @@ void Grid::computePtList(){
 
 	for(int x=min_x;x<max_x;++x)
 	for(int y=min_y;y<max_y;++y){
-		Point point=invP({(double)x,(double)y});
+		cv::Point2d point=invP({(double)x,(double)y});
 		auto a=(int)std::floor(point.x),b=(int)std::floor(point.y);
 		if(a<0||a>=maxA||b<0||b>=maxB)
 			continue;
-		ptListFull[a][b].push_back({x,y});
 		if(
 				point.x-a<min_border||point.x-a>max_border||
 				point.y-b<min_border||point.y-b>max_border)
@@ -152,7 +149,7 @@ void Grid::computeMedColor(){
 		for(int b=0;b<maxB;++b){
 			std::fill(cnt.begin(),cnt.end(),0);
 			int sum_pxv=0;
-			Uint8 min_pxv=255,max_pxv=0;
+			uint8_t min_pxv=255,max_pxv=0;
 			for(auto point:ptlist[a][b]){
 				auto pxv=pxval[point.y][point.x];
 				sum_pxv+=pxv;

@@ -8,8 +8,8 @@ INCLUDEDIRS :=
 
 CXX ?= g++
 CCEXT ?= cpp
-CCFLAGS ?= -D_GLIBCXX_DEBUG -g -O2 -std=c++11 -Wall -Wextra -Werror -pedantic `pkg-config --cflags SDL2_image` `pkg-config --cflags sdl2`
-CCLINK ?= `pkg-config --libs SDL2_image` `pkg-config --libs sdl2`
+CCFLAGS ?= -O2 -std=c++11 -Wall -Wextra -Werror -pedantic `pkg-config --cflags opencv4`
+CCLINK ?= `pkg-config --libs opencv4`
 
 FILES := $(shell find $(SRCDIR) -name *.$(CCEXT))
 

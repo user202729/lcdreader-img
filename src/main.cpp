@@ -5,83 +5,81 @@
 #include<algorithm>
 #include<cstdlib>
 #include<cassert>
-#include<SDL.h>
-#include<SDL_image.h>
 
-#include"Point.h"
+#include<opencv2/core.hpp>
+#include<opencv2/highgui.hpp>
+
 #include"Grid.h"
 
-SDL_Renderer* renderer;
-SDL_Texture* image;
+cv::Mat image;
 Grid grid;
 
-void draw_image(){
-	SDL_RenderCopy(renderer,image,nullptr,nullptr);
-}
+char const* const window_name="lcdreader-img";
 
 int preview_alpha=35;
 
 bool preview=false;
 bool image_only=false;
 void render(){
-	draw_image();
-	if(!image_only){
-		if(preview)
-			grid.draw_preview(renderer,preview_alpha);
-		else
-			grid.draw(renderer);
+	if(image_only)
+		cv::imshow(window_name,image);
+	else if(preview)
+		cv::imshow(window_name,grid.draw_preview(image,preview_alpha/255.));
+	else{
+		cv::Mat i1;
+		image.copyTo(i1);
+		grid.draw(i1);
+		cv::imshow(window_name,i1);
 	}
-	SDL_RenderPresent(renderer);
+}
+
+int heldCorner=-1; // [0..4[, or -1. For manipulating the grid.corners with mouse.
+cv::Point mouse;
+void mouseCallback(int event,int x,int y,int,void*){
+	mouse.x=x;mouse.y=y;
+	switch(event){
+		case cv::EVENT_LBUTTONDOWN:
+		{
+			if(heldCorner>=0)
+				break;
+			for(unsigned i=0;i<4;++i){
+				if(cv::norm(grid.getCorner(i)-mouse)<=20){
+					heldCorner=i;
+					grid.setCorner(i,mouse);
+					render();
+					break;
+				}
+			}
+			break;
+		}
+
+		case cv::EVENT_LBUTTONUP:
+			heldCorner=-1;
+			break;
+
+		case cv::EVENT_MOUSEMOVE:
+		{
+			if(heldCorner<0)break;
+			grid.setCorner(heldCorner,mouse);
+			render();
+			break;
+		}
+	}
 }
 
 int main(){
-	std::atexit(SDL_Quit);
-	if(SDL_Init(SDL_INIT_VIDEO)!=0){
-		std::cerr<<"SDL_Init failed: "<<SDL_GetError()<<'\n';
+	image=cv::imread("in.png");
+	if(!image.data){
+		std::cerr<<"imread failed\n";
 		return 1;
 	}
 
-	int imgFlags=IMG_INIT_PNG;
-	std::atexit(IMG_Quit);
-	if((IMG_Init(imgFlags)&imgFlags)!=imgFlags){
-		std::cerr<<"IMG_Init failed: "<<IMG_GetError()<<'\n';
-		return 1;
-	}
+	int width =image.cols;
+	int height=image.rows;
 
-	SDL_Surface *image_surface=IMG_Load("in.png");
-	if(!image_surface){
-		std::cerr<<"IMG_Load failed: "<<IMG_GetError()<<'\n';
-		return 1;
-	}
+	grid.compute_pxval(image);
 
-	int width=image_surface->w;
-	int height=image_surface->h;
-
-	grid.compute_pxval(image_surface);
-
-	SDL_Window* window=SDL_CreateWindow(
-		"lcdreader-img",
-		SDL_WINDOWPOS_UNDEFINED,SDL_WINDOWPOS_UNDEFINED,
-		width,height,
-		SDL_WINDOW_SHOWN
-	);
-	if (!window){
-		std::cerr<<"SDL_CreateWindow failed: "<<SDL_GetError()<<'\n';
-		return 1;
-	}
-
-	renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
-	if (!renderer){
-		std::cerr<<"SDL_CreateRenderer failed: "<<SDL_GetError()<<'\n';
-		return 1;
-	}
-
-	image=SDL_CreateTextureFromSurface(renderer,image_surface);
-	SDL_FreeSurface(image_surface);
-	if(!image){
-		std::cerr<<"SDL_CreateTextureFromSurface failed: "<<SDL_GetError()<<'\n';
-		return 1;
-	}
+	cv::namedWindow(window_name,cv::WINDOW_AUTOSIZE);
 
 	bool save_config;
 	{
@@ -112,149 +110,100 @@ int main(){
 
 	render();
 
-	int heldCorner=-1; // [0..4[, or -1. For manipulating the grid.corners with mouse.
+	cv::setMouseCallback(window_name,mouseCallback,nullptr);
 
-	bool running=true;
-	while(running){
-		SDL_Event event;
-		if (!SDL_WaitEvent(&event)){
-			std::cerr<<"SDL_WaitEvent failed: "<<SDL_GetError()<<'\n';
-			break;
-		}
-
-		switch (event.type)
-		{
-		case SDL_WINDOWEVENT:
-			switch (event.window.event)
-			{
-			case SDL_WINDOWEVENT_CLOSE:
-				running=false;
-				break;
-			}
-			break;
-
-		case SDL_MOUSEBUTTONDOWN:
-		{
-			if(heldCorner>=0)
-				break;
-			SDL_Point mouse{event.button.x,event.button.y};
-			for(unsigned i=0;i<4;++i){
-				int dx=grid.getCorner(i).x-mouse.x;
-				int dy=grid.getCorner(i).y-mouse.y;
-				if(dx*dx+dy*dy<=20*20){
-					heldCorner=i;
-					grid.setCorner(i,mouse);
-					render();
-					break;
-				}
-			}
-			break;
-		}
-
-		case SDL_MOUSEBUTTONUP:
-			heldCorner=-1;
-			break;
-
-		case SDL_MOUSEMOTION:
-		{
-			if(heldCorner<0)break;
-			SDL_Point mouse{event.button.x,event.button.y};
-			grid.setCorner(heldCorner,mouse);
-			render();
-			break;
-		}
-
-		case SDL_KEYDOWN:
-			switch(event.key.keysym.sym){
-			{
-				/// Move corner
+	while(true){
+		char key=cv::waitKey(0);
+		switch(key){
+			{ /// Move corner
 				int cornerIndex;
 
-			case SDLK_w:
+			case 'w':
 				cornerIndex=0; goto move_corner;
-			case SDLK_s:
+			case 's':
 				cornerIndex=1; goto move_corner;
-			case SDLK_e:
+			case 'e':
 				cornerIndex=2; goto move_corner;
-			case SDLK_d:
+			case 'd':
 				cornerIndex=3; goto move_corner;
 move_corner:
-				int x,y;
-				SDL_GetMouseState(&x,&y);
-				grid.setCorner(cornerIndex,{x,y});
+				grid.setCorner(cornerIndex,mouse);
 				render();
 				break;
 			}
 
 			/*
-			case SDLK_r:
+			case 'r':
 				/// Refresh (probably not useful)
 				render();
 				break;
 				*/
 
-			case SDLK_q:
+			case 'q':
 				/// Quit
-				running=false;
-				break;
+				goto break_outer;
 
-			case SDLK_a:
+			case 'a':
 				/// Automatically adjust
 				std::cout<<"unimplemented\n";
 				break;
 
-			case SDLK_7:
+			case '7':
 				if(preview_alpha==0)break;
 				--preview_alpha;
 				std::cout<<"a="<<preview_alpha<<'\n';
 				render();
 				break;
 
-			case SDLK_8:
+			case '8':
 				if(preview_alpha==255)break;
 				++preview_alpha;
 				std::cout<<"a="<<preview_alpha<<'\n';
 				render();
 				break;
 
-			case SDLK_9:
+			case '9':
 				grid.changeEdgeThreshold(-1);
 				render();
 				break;
 
-			case SDLK_0:
+			case '0':
 				grid.changeEdgeThreshold(1);
 				render();
 				break;
 
-			case SDLK_t:
+			case 't':
 				/// Show only image - toggle
 				image_only^=true;
 				render();
 				break;
 
-			case SDLK_p:
+			case 'p':
 				/// Preview (average color) - toggle
 				preview^=true;
 				render();
 				break;
 
-			case SDLK_z:
-			case SDLK_x:
-			{
-				/// Manually change the pixel at the cursor to 0/1
-				int x,y;
-				SDL_GetMouseState(&x,&y);
-				Point point=grid.invP({(double)x,(double)y});
+			{ /// Manually change the pixel at the cursor to 0/1
+				char data;
+			case 'z':
+				data=0;
+				goto change_pixel;
+			case 'x':
+				data=1;
+				goto change_pixel;
+
+change_pixel:
+				cv::Point2d point=grid.invP(mouse);
 				auto a=(int)std::floor(point.x),b=(int)std::floor(point.y);
 				if(a<0||a>=grid.getMaxA()||b<0||b>=grid.getMaxB())
 					break;
-				grid.setDataManual(a,b,event.key.keysym.sym==SDLK_x?1:0);
+				grid.setDataManual(a,b,data);
 				render();
 				break;
 			}
 
-			case SDLK_o:
+			case 'o':
 				/// Output
 			{
 				std::ofstream out("out.txt");
@@ -270,10 +219,9 @@ move_corner:
 				out.close();
 				break;
 			}
-			}
-			break;
 		}
 	}
+break_outer:
 
 	if(save_config){
 		std::ofstream config_f("config.txt");
@@ -281,8 +229,5 @@ move_corner:
 			config_f<<grid.getCorner(i).x<<' '<<grid.getCorner(i).y<<'\n';
 	}
 
-	SDL_DestroyTexture(image);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
 	return 0;
 }
