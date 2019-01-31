@@ -16,7 +16,6 @@ Keyboard shortcuts:
 * `90`: Change edge.
 * `P`: Toggle preview/grid.
 * `T`: Toggle showing only image.
-* `B`: Toggle preview binary/median color.
 * `Z`: Set the pixel under the cursor to 0.
 * `X`: Set the pixel under the cursor to 1.
 * `O`: Output.

@@ -1,4 +1,7 @@
 bin/
+dep/
+obj/
+
 in.png
 out.txt
 config.txt
