@@ -16,59 +16,48 @@ struct Grid{
 	int getMaxB() const{return maxB;}
 	void setGridSize(int a,int b);
 
-	/// Bilinear interpolation: [0..maxA] * [0..maxB] -> quadrilateral formed by corners
-	/// matrix (a points down, b points right) --P--> (x points right, y points down)
-	cv::Point2d P(double a,double b);
-	cv::Point2d P(cv::Point2d ab){return P(ab.x,ab.y);};
+	// Draw the bounding box. Not very accurate w.r.t. homographic transformation.
+	void drawBox(cv::Mat image);
 
-	/// Inverse transformation of P
-	cv::Point2d invP(cv::Point2d p);
+	/// Same as above, but with transparency (draw onto another image) and
+	/// zoom factor.
+	cv::Mat drawPreview(cv::Mat const image,double alpha);
 
-	/// Draw the grid (horizontal/vertical black lines) on the image.
-	void draw(cv::Mat image);
+	/// Draw horizontal/vertical grid lines, excluding borders.
+	void drawGrid(cv::Mat image);
 
-	/// Draw a preview of the resulting binarization on the image.
-	void draw_preview(cv::Mat image);
+	/// Use warpPerspective to extract the screen region.
+	cv::Mat extractScreen(double zoom_factor);
 
-	/// Same as above, but with transparency and does not modify input.
-	cv::Mat draw_preview(cv::Mat const image,double alpha);
+	/// Set the image used by binarize.
+	/// Note that if the image is modified, setImage must be called again.
+	void setImage(cv::Mat const);
 
-	/// Get pixel values from the cv::Mat.
-	void compute_pxval(cv::Mat);
-
-	/// Compute the median color in each cell.
-	void computeMedColor();
-
-	void computePtList();
-
-	/// Compute (data) based on (medColor) and (edge_threshold).
+	/// Compute (data).
 	void binarize();
-	void changeEdgeThreshold(int delta);
-	signed char getData(int i) const{
-		assert(binarize_cached);
-		return data_manual[i]>=0?data_manual[i]:data[i];
-	}
-	signed char getData(int a,int b) const{ return getData(a*maxB+b); }
 
-	void setDataManual(int index,char value);
-	void setDataManual(int a,int b,char value){setDataManual(a*maxB+b,value);}
+	/*
+	 * This is currently unused, because of a different binarization algorithm.
+	 *
+	 * void changeEdgeThreshold(int delta);
+	 */
+
+	signed char getData(int a,int b)const;
+
+	void setDataManual(int a,int b,int8_t value);
 
 private:
 	std::array<cv::Point,4> corners; // ul,dl,ur,dr
 	int maxA,maxB;
 
-	std::vector<std::vector<uint8_t>> pxval;
-	bool pxval_cached;
-
-	std::vector<std::vector<uint8_t>> medColor;
-	bool med_color_cached;
-
-	std::vector<std::vector<std::vector<cv::Point>>> ptlist;
-	bool ptlist_cached;
+	cv::Mat transform;
+	bool transform_cached;
+	void computeTransform();
 
 	/// Binarized value correspond to the pixels, in row-major order.
 	/// Light (high value): 0, dark (low value): 1.
-	std::vector<signed char> data,data_manual;
-	int edge_threshold;
+	cv::Mat data,data_manual;
 	bool binarize_cached;
+
+	cv::Mat image;
 };

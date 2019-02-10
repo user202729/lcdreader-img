@@ -17,28 +17,40 @@ cv::Mat image;
 Grid grid;
 
 char const* const window_name="lcdreader-img";
+char const* const outwin_name="output";
+int const zoom_factor=15;
+
 
 int preview_alpha=35;
 
 bool preview=false;
 bool image_only=false;
 void render(){
-	if(image_only)
+	if(image_only){
 		cv::imshow(window_name,image);
-	else if(preview)
-		cv::imshow(window_name,grid.draw_preview(image,preview_alpha/255.));
-	else{
+	}else{
 		cv::Mat i1;
 		image.copyTo(i1);
-		grid.draw(i1);
+		grid.drawBox(i1);
 		cv::imshow(window_name,i1);
 	}
+
+	cv::Mat i1=grid.extractScreen(zoom_factor);
+	if(!image_only){
+		if(preview){
+			grid.binarize();
+			i1=grid.drawPreview(i1,preview_alpha/255.);
+		}else{
+			grid.drawGrid(i1);
+		}
+	}
+	cv::imshow(outwin_name,i1);
 }
 
 int heldCorner=-1; // [0..4[, or -1. For manipulating the grid.corners with mouse.
 cv::Point mouse;
 void mouseCallback(int event,int x,int y,int,void*){
-	mouse.x=x;mouse.y=y;
+	mouse={x,y};
 	switch(event){
 		case cv::EVENT_LBUTTONDOWN:
 		{
@@ -67,6 +79,11 @@ void mouseCallback(int event,int x,int y,int,void*){
 			break;
 		}
 	}
+}
+
+cv::Point outwinMouse;
+void outwinMouseCallback(int,int x,int y,int,void*){
+	outwinMouse={x,y};
 }
 
 int main(int argc,char** argv){
@@ -99,9 +116,10 @@ int main(int argc,char** argv){
 	int width =image.cols;
 	int height=image.rows;
 
-	grid.compute_pxval(image);
+	grid.setImage(image);
 
 	cv::namedWindow(window_name,cv::WINDOW_AUTOSIZE);
+	cv::namedWindow(outwin_name,cv::WINDOW_AUTOSIZE);
 
 	bool save_config;
 	{
@@ -133,6 +151,7 @@ int main(int argc,char** argv){
 	render();
 
 	cv::setMouseCallback(window_name,mouseCallback,nullptr);
+	cv::setMouseCallback(outwin_name,outwinMouseCallback,nullptr);
 
 	while(true){
 		char key=cv::waitKey(0);
@@ -184,6 +203,7 @@ move_corner:
 				render();
 				break;
 
+				/*
 			case '9':
 				grid.changeEdgeThreshold(-1);
 				render();
@@ -193,6 +213,7 @@ move_corner:
 				grid.changeEdgeThreshold(1);
 				render();
 				break;
+				*/
 
 			case 't':
 				/// Show only image - toggle
@@ -216,11 +237,10 @@ move_corner:
 				goto change_pixel;
 
 change_pixel:
-				cv::Point2d point=grid.invP(mouse);
-				auto a=(int)std::floor(point.x),b=(int)std::floor(point.y);
-				if(a<0||a>=grid.getMaxA()||b<0||b>=grid.getMaxB())
-					break;
-				grid.setDataManual(a,b,data);
+				grid.setDataManual(
+						int(outwinMouse.y/zoom_factor),
+						int(outwinMouse.x/zoom_factor),
+						data);
 				render();
 				break;
 			}
