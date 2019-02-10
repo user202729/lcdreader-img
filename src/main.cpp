@@ -120,10 +120,17 @@ int main(int argc,char** argv){
 		height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT);
 		// nframe = (int)capture.get(cv::CAP_PROP_FRAME_COUNT);
 
-	if(!capture.read(image)){
-		std::cerr<<"File has no frame\n";
-		return 1;
+	iter=args.find("s");
+	int nreadframe=1;
+	if(iter!=args.end())
+		nreadframe+=std::stoi(iter->second);
+	while(nreadframe-->0){
+		if(!capture.read(image)){
+			std::cerr<<"Read past file end\n";
+			return 1;
+		}
 	}
+
 	grid.setImage(image);
 
 	cv::namedWindow(window_name,cv::WINDOW_AUTOSIZE);
@@ -233,6 +240,11 @@ move_corner:
 				/// Preview (average color) - toggle
 				preview^=true;
 				render();
+				break;
+
+			case 'f':
+				/// Show current frame index
+				std::cout<<"Current frame: "<<(int)capture.get(cv::CAP_PROP_POS_FRAMES)<<'\n';
 				break;
 
 			{ /// Manually change the pixel at the cursor to 0/1

@@ -13,6 +13,7 @@ Command-line shortcut:
 * Possible key values:
     * `f`: file name.
 	* `w`, `h`: grid width/height.
+	* `s`: Number of frames to skip at the begin of the video. Default 0.
 
 Keyboard shortcuts:
 
@@ -27,3 +28,4 @@ Keyboard shortcuts:
 * `X`: Set the pixel under the cursor to 1.
 * `O`: Output.
 * `N`: Go to next video frame.
+* `F`: Show the current frame number.
