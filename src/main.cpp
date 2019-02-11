@@ -38,11 +38,10 @@ void render(){
 
 	cv::Mat i1=grid.extractScreen(zoom_factor);
 	if(!image_only){
+		cv::cvtColor(i1,i1,cv::COLOR_BGR2GRAY);
 		if(preview){
-			grid.binarize();
-			i1=grid.drawPreview(i1,preview_alpha/255.);
-		}else{
-			grid.drawGrid(i1);
+			cv::adaptiveThreshold(i1,i1,255,cv::ADAPTIVE_THRESH_GAUSSIAN_C,
+					cv::THRESH_BINARY,zoom_factor*5,2);
 		}
 	}
 	cv::imshow(outwin_name,i1);
