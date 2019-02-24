@@ -117,18 +117,19 @@ int main(int argc,char** argv){
 
 	auto
 		width  = (int)capture.get(cv::CAP_PROP_FRAME_WIDTH),
-		height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT);
-		// nframe = (int)capture.get(cv::CAP_PROP_FRAME_COUNT);
+		height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT),
+		nframe = (int)capture.get(cv::CAP_PROP_FRAME_COUNT);
+	std::cout<<"Number of frames: "<<nframe<<'\n';
 
 	iter=args.find("s");
-	int nreadframe=1;
-	if(iter!=args.end())
-		nreadframe+=std::stoi(iter->second);
-	while(nreadframe-->0){
-		if(!capture.read(image)){
-			std::cerr<<"Read past file end\n";
-			return 1;
-		}
+	if(iter!=args.end()){
+		int nreadframe=std::stoi(iter->second);
+		capture.set(cv::CAP_PROP_POS_FRAMES,nreadframe);
+	}
+
+	if(!capture.read(image)){
+		std::cerr<<"Read past file end\n";
+		return 1;
 	}
 
 	grid.setImage(image);
@@ -283,7 +284,29 @@ change_pixel:
 				goto break_outer;
 			}
 
+			// set frame (seek)
+			case 'H':
+				capture.set(cv::CAP_PROP_POS_FRAMES,std::max(
+						0.,
+						capture.get(cv::CAP_PROP_POS_FRAMES)-100));
+				goto read_frame;
+
+			case 'L':
+				capture.set(cv::CAP_PROP_POS_FRAMES,std::min(
+						capture.get(cv::CAP_PROP_FRAME_COUNT)-1,
+						capture.get(cv::CAP_PROP_POS_FRAMES)+100));
+				goto read_frame;
+
+			case 'g':
+				std::cout<<"Frame number: ";
+				{
+					int frame;std::cin>>frame;
+					capture.set(cv::CAP_PROP_POS_FRAMES,frame);
+				}
+				goto read_frame;
+
 			case 'n':
+			read_frame:
 				if(!capture.read(image)){
 					std::cout<<"End of file\n";
 					break;

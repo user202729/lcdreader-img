@@ -19,13 +19,16 @@ Keyboard shortcuts:
 
 * `WESD`: Move the corresponding grid corner (assume QWERTY keyboard layout) to the
   mouse pointer. Drag-and-drop the corners is also supported.
-* `Q`: Quit.
+* `q`: Quit.
 * `78`: Change preview binary opacity.
 * `90`: Change edge.
-* `P`: Toggle preview/grid.
-* `T`: Toggle showing only image.
-* `Z`: Set the pixel under the cursor to 0.
-* `X`: Set the pixel under the cursor to 1.
-* `O`: Output.
-* `N`: Go to next video frame.
-* `F`: Show the current frame number.
+* `p`: Toggle preview/grid.
+* `t`: Toggle showing only image.
+* `z`: Set the pixel under the cursor to 0.
+* `x`: Set the pixel under the cursor to 1.
+* `o`: Output.
+* `H`: Go back 99 frames.
+* `L`: Go forward 101 frames.
+* `g`: Go to frame number (read from stdin)
+* `n`: Go to next video frame.
+* `f`: Show the current frame number.
