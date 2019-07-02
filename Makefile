@@ -8,7 +8,9 @@ INCLUDEDIRS :=
 
 CXX ?= g++
 CCEXT ?= cpp
-CCFLAGS ?= -O2 -std=c++11 -Wall -Wextra -Werror -pedantic `pkg-config --cflags opencv4`
+CCFLAGS ?= -O2 -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-deprecated-copy `pkg-config --cflags opencv4`
+# -Wno-deprecated-copy: workaround for opencv bug: https://github.com/opencv/opencv/issues/14933
+
 CCLINK ?= `pkg-config --libs opencv4`
 
 FILES := $(shell find $(SRCDIR) -name *.$(CCEXT))
