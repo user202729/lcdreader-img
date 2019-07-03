@@ -12,6 +12,7 @@ Command-line shortcut:
 * Format: `key=value`
 * Possible key values:
     * `f`: file name.
+    * `zoom`: zoom factor (pixel width) of output image.
 	* `w`, `h`: grid width/height.
 
 Keyboard shortcuts:

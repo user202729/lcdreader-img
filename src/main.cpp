@@ -18,7 +18,7 @@ Grid grid;
 
 char const* const window_name="lcdreader-img";
 char const* const outwin_name="output";
-int const zoom_factor=15;
+int zoom_factor=15;
 
 
 int preview_alpha=35;
@@ -112,6 +112,10 @@ int main(int argc,char** argv){
 		std::cerr<<"imread failed\n";
 		return 1;
 	}
+
+	iter=args.find("zoom");
+	if(iter!=args.end())
+		zoom_factor=std::stoi(iter->second);
 
 	int width =image.cols;
 	int height=image.rows;
