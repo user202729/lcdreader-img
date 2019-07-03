@@ -27,3 +27,8 @@ Keyboard shortcuts:
 * `Z`: Set the pixel under the cursor to 0.
 * `X`: Set the pixel under the cursor to 1.
 * `O`: Output.
+
+Mouse control:
+
+* Drag corner/anchor on the input image to move.
+* Click on the transformed image to add an anchor point. (must be on the grid)

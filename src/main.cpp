@@ -32,6 +32,7 @@ void render(){
 		cv::Mat i1;
 		image.copyTo(i1);
 		grid.drawBox(i1);
+		grid.drawAnchorInput(i1);
 		cv::imshow(window_name,i1);
 	}
 
@@ -41,6 +42,7 @@ void render(){
 			grid.binarize();
 			i1=grid.drawPreview(i1,preview_alpha/255.);
 		}else{
+			grid.drawAnchorTransformed(i1);
 			grid.drawGrid(i1);
 		}
 	}
@@ -56,8 +58,9 @@ void mouseCallback(int event,int x,int y,int,void*){
 		{
 			if(heldCorner>=0)
 				break;
-			for(unsigned i=0;i<4;++i){
-				if(cv::norm(grid.getCorner(i)-mouse)<=20){
+			auto const& corners=grid.getCorners();
+			for(unsigned i=0;i<corners.size();++i){
+				if(cv::norm(corners[i]-mouse)<=20){
 					heldCorner=i;
 					grid.setCorner(i,mouse);
 					render();
@@ -81,9 +84,25 @@ void mouseCallback(int event,int x,int y,int,void*){
 	}
 }
 
-cv::Point outwinMouse;
-void outwinMouseCallback(int,int x,int y,int,void*){
-	outwinMouse={x,y};
+cv::Point outwinMouse; // actual coordinate (may be divided by zoom_factor when used)
+void outwinMouseCallback(int event,int x,int y,int,void*){
+	switch(event){
+		case cv::EVENT_LBUTTONUP:
+			// add anchor point
+			std::cerr<<"add "<<std::round((double)x/zoom_factor)<<' '<<std::round((double)y/zoom_factor)<<'\n';
+			grid.addAnchor({std::round((double)x/zoom_factor),
+					std::round((double)y/zoom_factor)});
+			if(!image_only)
+				render();
+			break;
+
+		case cv::EVENT_RBUTTONUP:
+			break;
+
+		case cv::EVENT_MOUSEMOVE:
+			outwinMouse={x,y};
+			break;
+	}
 }
 
 int main(int argc,char** argv){
@@ -139,7 +158,7 @@ int main(int argc,char** argv){
 
 		bool set_corners_to_default=!config_f; // empty file or read failed
 		for(int i=0;i<4&&!set_corners_to_default;++i){
-			auto p=grid.getCorner(i);
+			auto p=grid.getCorners()[i];
 			if(p.x<0||p.x>width||p.y<0||p.y>height) // invalid coordinate
 				set_corners_to_default=true;
 		}
@@ -271,8 +290,8 @@ break_outer:
 
 	if(save_config){
 		std::ofstream config_f("config.txt");
-		for(int i=0;i<4;++i)
-			config_f<<grid.getCorner(i).x<<' '<<grid.getCorner(i).y<<'\n';
+		for(auto p:grid.getCorners())
+			config_f<<p.x<<' '<<p.y<<'\n';
 	}
 
 	return 0;

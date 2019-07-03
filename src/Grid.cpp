@@ -1,12 +1,13 @@
 #include"Grid.h"
 
 #include<iostream>
+#include<array>
 #include<cassert>
 
 #include<opencv2/imgproc.hpp>
 #include<opencv2/calib3d.hpp>
 
-Grid::Grid():transform_cached(),binarize_cached(){
+Grid::Grid():corners(4),anchor_src(4),transform_cached(),binarize_cached(){
 	setGridSize(31,48);
 }
 
@@ -16,10 +17,25 @@ void Grid::setCorner(int index,cv::Point point){
 	transform_cached=false;
 }
 
+void Grid::addAnchor(cv::Point2d src){
+	computeTransform();
+
+	anchor_src.push_back(src);
+	std::array<cv::Point2d,1> arr{src};
+	cv::perspectiveTransform(arr,arr,transform.inv());
+	corners.push_back(arr[0]);
+	// assume the transformation is correct after this operation
+}
+
 void Grid::setGridSize(int a,int b){
 	assert(a>0);
 	assert(b>0);
 	maxA=a;maxB=b;
+
+	anchor_src[0]={   0,   0};
+	anchor_src[1]={   0,maxA};
+	anchor_src[2]={maxB,   0};
+	anchor_src[3]={maxB,maxA};
 
 	binarize_cached=false;
 	transform_cached=false;
@@ -38,6 +54,23 @@ void Grid::drawBox(cv::Mat image){
 	cv::line(image,corners[0],corners[2],cv::Scalar(0,0,0));
 	cv::line(image,corners[3],corners[1],cv::Scalar(0,0,0));
 	cv::line(image,corners[3],corners[2],cv::Scalar(0,0,0));
+}
+
+void Grid::drawAnchorInput(cv::Mat image){
+	for(auto p:corners)
+		cv::circle(image,p,3,cv::Scalar(255,255,0),-1 /* filled */);
+}
+
+void Grid::drawAnchorTransformed(cv::Mat image){
+	assert(image.rows%maxA==0);
+	assert(image.cols%maxB==0);
+	int const factor=image.rows/maxA;
+	assert(factor==image.cols/maxB);
+
+	int const radius=std::min(factor,3);
+	for(unsigned i=4;i<anchor_src.size();++i)
+		cv::circle(image,anchor_src[i]*factor,
+				radius,cv::Scalar(255,255,0),-1);
 }
 
 void Grid::drawGrid(cv::Mat image){
@@ -71,11 +104,7 @@ void Grid::computeTransform(){
 	if(transform_cached)
 		return;
 
-	transform=cv::findHomography(corners,
-			std::array<cv::Point,4>{{
-			{   0,   0}, {   0,maxA},
-			{maxB,   0}, {maxB,maxA}
-			}});
+	transform=cv::findHomography(corners,anchor_src);
 	transform_cached=true;
 }
 
