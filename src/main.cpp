@@ -10,6 +10,7 @@
 
 #include<opencv2/core.hpp>
 #include<opencv2/highgui.hpp>
+#include<opencv2/imgproc.hpp>
 
 #include"Grid.h"
 
@@ -25,6 +26,8 @@ int preview_alpha=35;
 
 bool preview=false;
 bool image_only=false;
+cv::Point out_cursor; // used to set data with Z/X
+
 void render(){
 	if(image_only){
 		cv::imshow(window_name,image);
@@ -45,8 +48,24 @@ void render(){
 			grid.drawAnchorTransformed(i1);
 			grid.drawGrid(i1);
 		}
+
+		// draw out_cursor
+		cv::Scalar const border_color(0,0,255); // red
+		cv::Point const topleft=out_cursor*zoom_factor,
+			v1{0,zoom_factor},v2{zoom_factor,0};
+		cv::line(i1,topleft,topleft+v1,border_color);
+		cv::line(i1,topleft,topleft+v2,border_color);
+		cv::line(i1,topleft+v1,topleft+v1+v2,border_color);
+		cv::line(i1,topleft+v2,topleft+v1+v2,border_color);
 	}
 	cv::imshow(outwin_name,i1);
+}
+
+void setOutCursor(cv::Point p){
+	if(p==out_cursor)return;
+	out_cursor=p;
+	if(!image_only)
+		render();
 }
 
 int heldCorner=-1; // [0..4[, or -1. For manipulating the grid.corners with mouse.
@@ -84,7 +103,6 @@ void mouseCallback(int event,int x,int y,int,void*){
 	}
 }
 
-cv::Point outwinMouse; // actual coordinate (may be divided by zoom_factor when used)
 void outwinMouseCallback(int event,int x,int y,int,void*){
 	switch(event){
 		case cv::EVENT_LBUTTONUP:
@@ -100,8 +118,14 @@ void outwinMouseCallback(int event,int x,int y,int,void*){
 			break;
 
 		case cv::EVENT_MOUSEMOVE:
-			outwinMouse={x,y};
+		{
+			cv::Point p(x/zoom_factor,y/zoom_factor);
+			assert(0<=p.x&&0<=p.y);
+			if(p.x<grid.getMaxB()&&p.y<grid.getMaxA()){
+				setOutCursor(p);
+			}
 			break;
+		}
 	}
 }
 
@@ -260,13 +284,28 @@ move_corner:
 				goto change_pixel;
 
 change_pixel:
-				grid.setDataManual(
-						int(outwinMouse.y/zoom_factor),
-						int(outwinMouse.x/zoom_factor),
-						data);
+				grid.setDataManual(out_cursor.y,out_cursor.x,data);
 				render();
 				break;
 			}
+
+			case 'k':
+				/// Move out cursor
+				if(out_cursor.y>0)
+					setOutCursor({out_cursor.x,out_cursor.y-1});
+				break;
+			case 'j':
+				if(out_cursor.y<grid.getMaxA()-1)
+					setOutCursor({out_cursor.x,out_cursor.y+1});
+				break;
+			case 'h':
+				if(out_cursor.x>0)
+					setOutCursor({out_cursor.x-1,out_cursor.y});
+				break;
+			case 'l':
+				if(out_cursor.x<grid.getMaxB()-1)
+					setOutCursor({out_cursor.x+1,out_cursor.y});
+				break;
 
 			case 'o':
 				/// Output

@@ -24,11 +24,13 @@ Keyboard shortcuts:
 * `90`: Change edge.
 * `P`: Toggle preview/grid.
 * `T`: Toggle showing only image.
-* `Z`: Set the pixel under the cursor to 0.
-* `X`: Set the pixel under the cursor to 1.
+* `HJKL`: Move the output cursor.
+* `Z`: Set the pixel under the output cursor to 0.
+* `X`: Set the pixel under the output cursor to 1.
 * `O`: Output.
 
 Mouse control:
 
 * Drag corner/anchor on the input image to move.
+* Move mouse on the transformed image to move the output cursor.
 * Click on the transformed image to add an anchor point. (must be on the grid)
