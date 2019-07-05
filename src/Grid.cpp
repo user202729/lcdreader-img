@@ -126,12 +126,21 @@ void Grid::binarize(){
 	if(binarize_cached)
 		return;
 
+	int const factor=7; // %2 != 0
+	cv::Mat img=extractScreen(factor);
+	cv::cvtColor(img,img,cv::COLOR_BGR2GRAY);
+	cv::adaptiveThreshold(img,img,255,cv::ADAPTIVE_THRESH_GAUSSIAN_C,
+			cv::THRESH_BINARY,factor*9,2);
+	cv::dilate(img,img,cv::Mat());
+	cv::erode(img,img,cv::Mat());
+
+	cv::resize(img,img,{},1./factor,1./factor,cv::INTER_AREA);
+	cv::threshold(img,data,
+			127,
+			255,cv::THRESH_BINARY_INV);
+
 	assert(data.rows==maxA);
 	assert(data.cols==maxB);
-	data=cv::Mat::zeros(maxA,maxB,data.type());
-
-	std::cout<<"Temporarily unimplemented, sorry\n";
-
 	binarize_cached=true;
 }
 

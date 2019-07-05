@@ -274,6 +274,7 @@ change_pixel:
 				std::ofstream out("out.txt");
 
 				int i=0;
+				grid.binarize();
 				for(int row=0;row<grid.getMaxA();++row){
 					for(int col=0;col<grid.getMaxB();++col){
 						out<<(grid.getData(row,col)?'1':'0');
