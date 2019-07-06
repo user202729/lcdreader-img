@@ -61,7 +61,8 @@ private:
 	std::vector<cv::Point> anchor_src; // 4 first items = corners
 	int maxA,maxB;
 
-	cv::Mat transform;
+	cv::Matx33d transform,camera_matrix;
+	cv::Mat dist_coeffs;
 	bool transform_cached;
 	void computeTransform();
 

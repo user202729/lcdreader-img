@@ -23,6 +23,16 @@ void Grid::addAnchor(cv::Point2d src){
 	anchor_src.push_back(src);
 	std::array<cv::Point2d,1> arr{src};
 	cv::perspectiveTransform(arr,arr,transform.inv());
+
+	// reverse of undistortPoints -- https://stackoverflow.com/a/35016615
+	{
+		cv::undistortPoints(arr,arr,camera_matrix,cv::Mat());
+		std::array<cv::Point3d,1> arr3d;
+		cv::convertPointsToHomogeneous(arr,arr3d);
+		cv::projectPoints(arr3d,cv::Matx31d{},cv::Matx31d{},
+				camera_matrix,dist_coeffs,arr);
+	}
+
 	corners.push_back(arr[0]);
 	// assume the transformation is correct after this operation
 }
@@ -88,15 +98,16 @@ cv::Mat Grid::extractScreen(double zoom_factor){
 	computeTransform();
 	assert(zoom_factor>0);
 
-	auto transform_scaled=transform.clone();
+	cv::Mat result;
+	cv::undistort(image,result,camera_matrix,dist_coeffs);
+
+	auto transform_scaled(transform);
 	for(int r=0;r<2;++r)
 	for(int c=0;c<3;++c)
-		transform_scaled.at<double>(r,c)*=zoom_factor;
+		transform_scaled(r,c)*=zoom_factor;
 
-	cv::Mat result;
-	int h=int(maxA*zoom_factor);
-	int w=int(maxB*zoom_factor);
-	cv::warpPerspective(image,result,transform_scaled,{w,h});
+	cv::warpPerspective(result,result,transform_scaled,
+			{int(maxB*zoom_factor),int(maxA*zoom_factor)});
 	return result;
 }
 
@@ -104,7 +115,21 @@ void Grid::computeTransform(){
 	if(transform_cached)
 		return;
 
-	transform=cv::findHomography(corners,anchor_src);
+	std::vector<cv::Point2f> corners_float(begin(corners),end(corners));
+	std::vector<cv::Point3f> anchor_src_3d(begin(anchor_src),end(anchor_src));
+
+	std::vector<cv::Mat> rvecs,tvecs; // TODO use those
+	(void)cv::calibrateCamera(
+			std::vector<std::vector<cv::Point3f>>{anchor_src_3d},
+			std::vector<std::vector<cv::Point2f>>{corners_float},
+			image.size(),
+			camera_matrix,dist_coeffs,rvecs,tvecs);
+
+	std::vector<cv::Point2f> corners_undistorted;
+	cv::undistortPoints(corners_float,corners_undistorted,camera_matrix,dist_coeffs,
+			cv::noArray(),camera_matrix);
+	transform=cv::findHomography(corners_undistorted,anchor_src);
+
 	transform_cached=true;
 }
 

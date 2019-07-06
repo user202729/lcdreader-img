@@ -34,3 +34,7 @@ Mouse control:
 * Drag corner/anchor on the input image to move.
 * Move mouse on the transformed image to move the output cursor.
 * Click on the transformed image to add an anchor point. (must be on the grid)
+
+Note:
+
+Currently, the image is undistorted assuming the pinhole camera model.
