@@ -8,6 +8,8 @@
 #include<opencv2/imgproc.hpp>
 #include<opencv2/calib3d.hpp>
 
+#include"DigitRecognition.hpp"
+
 Grid::Grid():corners(4),anchor_src(4),use_distort(false),
 	transform_cached(),binarize_cached(){}
 
