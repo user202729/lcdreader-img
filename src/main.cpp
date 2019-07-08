@@ -143,7 +143,7 @@ int main(int argc,char** argv){
 
 	auto iter=args.find("w");
 	if(iter!=args.end()){
-		grid.setGridSize(std::stoi(iter->second),std::stoi(args.at("h")));
+		grid.setGridSize(std::stoi(args.at("h")),std::stoi(iter->second));
 	}
 
 	iter=args.find("f");
