@@ -14,6 +14,7 @@
 #include<opencv2/videoio.hpp>
 
 #include"Grid.hpp"
+#include"DigitRecognition.hpp"
 
 cv::Mat image;
 Grid grid;
@@ -240,12 +241,26 @@ move_corner:
 				break;
 			}
 
-			/*
 			case 'r':
-				/// Refresh (probably not useful)
-				render();
+			{
+				char key=cv::waitKey(0);
+				switch(key){
+					case 'f':
+						/// Refresh (probably not useful)
+						render();
+						break;
+					case 'c':
+					{
+						/// Recognize digits
+						cv::Mat scr=grid.extractScreen(FACTOR);
+						cv::cvtColor(scr,scr,cv::COLOR_BGR2GRAY);
+						assert(scr.type()==CV_8U);
+						std::cout<<recognizeDigits(255-scr)<<'\n';
+						break;
+					}
+				}
 				break;
-				*/
+			}
 
 			case 'q':
 				/// Quit
@@ -316,6 +331,43 @@ move_corner:
 change_pixel:
 				grid.setDataManual(out_cursor.y,out_cursor.x,data);
 				render();
+				break;
+			}
+
+			case 'c':
+			{
+				/// Change data manual by digit pattern
+				std::cout<<"Enter 4 hexadecimal characters\n";
+				std::string digits(4,' ');
+				std::size_t i=0;
+				while(true){
+					if(i==digits.size()){
+						cv::Mat_<uint8_t> m=getDigitMat(digits);
+						for(int a=0;a<m.rows;++a)
+						for(int b=0;b<m.cols;++b)
+							grid.setDataManual(a,b,m(a,b));
+						if(preview)
+							render();
+						break;
+					}
+
+					auto& digit=digits[i];
+					digit=cv::waitKey(0);
+					if('a'<=digit&&digit<='f')
+						digit+='A'-'a';
+					auto index=(unsigned)indexOf(digit);
+					if(index>=NDIGIT||name[index]!=digit){
+						std::cout<<"Invalid letter "<<digit<<'\n';
+						// Delete data manual
+						for(int a=0;a<grid.getMaxA();++a)
+						for(int b=0;b<grid.getMaxB();++b)
+							grid.setDataManual(a,b,-1);
+						if(preview_mode!=Preview::NONE)
+							render();
+						break;
+					}
+					++i;
+				}
 				break;
 			}
 

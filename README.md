@@ -25,6 +25,9 @@ Keyboard shortcuts:
 * `U1`: Allow undistorting the image. The image is undistorted assuming the pinhole camera model.
 * `U0`: Disallow undistorting the image, only homography transformation is used. This is the default and is preferred if the image part is small (the distortion is not significant) or there are on a few corner/anchor points.
 * `N`: Go to next video frame.
+* `RF`: Refresh the image.
+* `C`: Set data manual according to a hexadecimal digit pattern (enter 4 digits)
+* `RC`: Recognize the hexadecimal digits. Output to stdout.
 * `O`: Output.
 
 Mouse control:
