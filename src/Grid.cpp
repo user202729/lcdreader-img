@@ -3,6 +3,7 @@
 #include<iostream>
 #include<array>
 #include<cassert>
+#include<cmath>
 
 #include<opencv2/imgproc.hpp>
 #include<opencv2/calib3d.hpp>
@@ -24,8 +25,8 @@ void Grid::addAnchor(cv::Point2d src){
 	std::array<cv::Point2d,1> arr{src};
 	cv::perspectiveTransform(arr,arr,transform.inv());
 
-	// reverse of undistortPoints -- https://stackoverflow.com/a/35016615
-	{
+	if(!std::isnan(camera_matrix(0,0))){
+		// reverse of undistortPoints(arr,arr) -- https://stackoverflow.com/a/35016615
 		cv::undistortPoints(arr,arr,camera_matrix,cv::Mat());
 		std::array<cv::Point3d,1> arr3d;
 		cv::convertPointsToHomogeneous(arr,arr3d);
@@ -99,7 +100,10 @@ cv::Mat Grid::extractScreen(double zoom_factor){
 	assert(zoom_factor>0);
 
 	cv::Mat result;
-	cv::undistort(image,result,camera_matrix,dist_coeffs);
+	if(std::isnan(camera_matrix(0,0)))
+		result=image.clone();
+	else
+		cv::undistort(image,result,camera_matrix,dist_coeffs);
 
 	auto transform_scaled(transform);
 	for(int r=0;r<2;++r)
@@ -126,8 +130,14 @@ void Grid::computeTransform(){
 			camera_matrix,dist_coeffs,rvecs,tvecs);
 
 	std::vector<cv::Point2f> corners_undistorted;
-	cv::undistortPoints(corners_float,corners_undistorted,camera_matrix,dist_coeffs,
-			cv::noArray(),camera_matrix);
+	if(std::isnan(camera_matrix(0,0)))
+		corners_undistorted=corners_float;
+	else
+		cv::undistortPoints(corners_float,corners_undistorted,camera_matrix,dist_coeffs,
+				cv::noArray(),camera_matrix);
+
+	std::cout<<corners_float<<' '<<corners_undistorted<<' '<<anchor_src<<'\n';
+
 	transform=cv::findHomography(corners_undistorted,anchor_src);
 
 	transform_cached=true;
