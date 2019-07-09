@@ -236,6 +236,16 @@ move_corner:
 				std::cout<<"unimplemented\n";
 				break;
 
+			case 'u':
+			{
+				char key=cv::waitKey(0);
+				if(key=='0'||key=='1'){
+					grid.setUndistort(key=='1');
+					render();
+				}
+				break;
+			}
+
 			case '7':
 				if(preview_alpha==0)break;
 				--preview_alpha;

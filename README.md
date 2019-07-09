@@ -27,6 +27,8 @@ Keyboard shortcuts:
 * `HJKL`: Move the output cursor.
 * `Z`: Set the pixel under the output cursor to 0.
 * `X`: Set the pixel under the output cursor to 1.
+* `U1`: Allow undistorting the image. The image is undistorted assuming the pinhole camera model.
+* `U0`: Disallow undistorting the image, only homography transformation is used. This is the default and is preferred if the image part is small (the distortion is not significant) or there are on a few corner/anchor points.
 * `O`: Output.
 
 Mouse control:
@@ -34,7 +36,3 @@ Mouse control:
 * Drag corner/anchor on the input image to move.
 * Move mouse on the transformed image to move the output cursor.
 * Click on the transformed image to add an anchor point. (must be on the grid)
-
-Note:
-
-Currently, the image is undistorted assuming the pinhole camera model.

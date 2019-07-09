@@ -56,11 +56,20 @@ struct Grid{
 
 	void setDataManual(int a,int b,int8_t value);
 
+	/** Set if camera distortion/undistortion should be used. Default false.
+	 * In degenerate cases, the computed camera matrix may be wrong.
+	 * Pinhole camera model is assumed.
+	 */
+	void setUndistort(bool);
+
 private:
 	std::vector<cv::Point> corners; // ul,dl,ur,dr, anchor dests
 	std::vector<cv::Point> anchor_src; // 4 first items = corners
 	int maxA,maxB;
 
+	bool use_distort;
+	// if std::isnan(camera_matrix(0,0)) then camera_matrix should not be used to
+	// distort or undistort anything (treat those operations as no-op)
 	cv::Matx33d transform,camera_matrix;
 	cv::Mat dist_coeffs;
 	bool transform_cached;

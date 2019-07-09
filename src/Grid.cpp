@@ -8,7 +8,8 @@
 #include<opencv2/imgproc.hpp>
 #include<opencv2/calib3d.hpp>
 
-Grid::Grid():corners(4),anchor_src(4),transform_cached(),binarize_cached(){
+Grid::Grid():corners(4),anchor_src(4),use_distort(false),
+	transform_cached(),binarize_cached(){
 	setGridSize(31,48);
 }
 
@@ -119,26 +120,29 @@ void Grid::computeTransform(){
 	if(transform_cached)
 		return;
 
-	std::vector<cv::Point2f> corners_float(begin(corners),end(corners));
-	std::vector<cv::Point3f> anchor_src_3d(begin(anchor_src),end(anchor_src));
+	std::vector<cv::Point2f> corners_(begin(corners),end(corners));
 
-	std::vector<cv::Mat> rvecs,tvecs; // TODO use those
-	(void)cv::calibrateCamera(
-			std::vector<std::vector<cv::Point3f>>{anchor_src_3d},
-			std::vector<std::vector<cv::Point2f>>{corners_float},
-			image.size(),
-			camera_matrix,dist_coeffs,rvecs,tvecs);
+	if(use_distort){
+		std::vector<cv::Point3f> anchor_src_3d(begin(anchor_src),end(anchor_src));
 
-	std::vector<cv::Point2f> corners_undistorted;
-	if(std::isnan(camera_matrix(0,0)))
-		corners_undistorted=corners_float;
-	else
-		cv::undistortPoints(corners_float,corners_undistorted,camera_matrix,dist_coeffs,
-				cv::noArray(),camera_matrix);
+		std::vector<cv::Mat> rvecs,tvecs; // TODO use those
+		(void)cv::calibrateCamera(
+				std::vector<std::vector<cv::Point3f>>{anchor_src_3d},
+				std::vector<std::vector<cv::Point2f>>{corners_},
+				image.size(),
+				camera_matrix,dist_coeffs,rvecs,tvecs);
 
-	std::cout<<corners_float<<' '<<corners_undistorted<<' '<<anchor_src<<'\n';
+		std::vector<cv::Point2f> corners_undistorted;
+		if(std::isnan(camera_matrix(0,0)))
+			corners_undistorted=corners_;
+		else
+			cv::undistortPoints(corners_,corners_,camera_matrix,dist_coeffs,
+					cv::noArray(),camera_matrix);
+	}else{
+		camera_matrix(0,0)=std::nan("");
+	}
 
-	transform=cv::findHomography(corners_undistorted,anchor_src);
+	transform=cv::findHomography(corners_,anchor_src);
 
 	transform_cached=true;
 }
@@ -200,4 +204,10 @@ signed char Grid::getData(int a,int b)const{
 	if(d<0)
 		d=data.at<int8_t>(a,b);
 	return d;
+}
+
+void Grid::setUndistort(bool value){
+	use_distort=value;
+	binarize_cached=false;
+	transform_cached=false;
 }
