@@ -12,7 +12,7 @@
 #include<opencv2/highgui.hpp>
 #include<opencv2/imgproc.hpp>
 
-#include"Grid.h"
+#include"Grid.hpp"
 
 cv::Mat image;
 Grid grid;

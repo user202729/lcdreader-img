@@ -1,4 +1,4 @@
-#include"Grid.h"
+#include"Grid.hpp"
 
 #include<iostream>
 #include<array>
