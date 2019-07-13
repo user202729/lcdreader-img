@@ -8,12 +8,7 @@ Usage:
 * If a file `config.txt` exists, the positions of the corners position are saved to/
   loaded from that file. If the file is empty, default configuration is used.
 
-Command-line shortcut:
-* Format: `key=value`
-* Possible key values:
-    * `f`: file name.
-    * `zoom`: zoom factor (pixel width) of output image.
-	* `w`, `h`: grid width/height.
+Command-line shortcut: Enter `--help` for details.
 
 Keyboard shortcuts:
 

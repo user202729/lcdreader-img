@@ -130,35 +130,28 @@ void outwinMouseCallback(int event,int x,int y,int,void*){
 }
 
 int main(int argc,char** argv){
-	std::map<std::string,std::string> args;
-	for(int i=1;i<argc;++i){
-		std::string arg=argv[i];
-		auto index=arg.find('=');
-		if(index==std::string::npos){
-			std::cerr<<"Invalid arguments\n";
-			return 1;
-		}
-		args[arg.substr(0,index)]=arg.substr(index+1);
+	cv::CommandLineParser args(argc,argv,R"(
+	{ help ? |        | Print help message.                        }
+	{ w      | 10     | Grid width in pixels.                      }
+	{ h      | 10     | Grid height in pixels.                     }
+	{ f      | in.png | File name.                                 }
+	{ zoom   | 15     | Zoom factor (pixel width) of output image. }
+	)");
+
+	if(args.has("help")){
+		args.printMessage();
+		return 0;
 	}
 
-	auto iter=args.find("w");
-	if(iter!=args.end()){
-		grid.setGridSize(std::stoi(args.at("h")),std::stoi(iter->second));
-	}
+	grid.setGridSize(args.get<int>("h"),args.get<int>("w"));
 
-	iter=args.find("f");
-	if(iter==args.end())
-		image=cv::imread("in.png");
-	else
-		image=cv::imread(iter->second);
+	image=cv::imread(args.get<std::string>("f"));
 	if(!image.data){
 		std::cerr<<"imread failed\n";
 		return 1;
 	}
 
-	iter=args.find("zoom");
-	if(iter!=args.end())
-		zoom_factor=std::stoi(iter->second);
+	zoom_factor=args.get<int>("zoom");
 
 	int width =image.cols;
 	int height=image.rows;

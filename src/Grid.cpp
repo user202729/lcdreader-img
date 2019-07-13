@@ -9,9 +9,7 @@
 #include<opencv2/calib3d.hpp>
 
 Grid::Grid():corners(4),anchor_src(4),use_distort(false),
-	transform_cached(),binarize_cached(){
-	setGridSize(31,48);
-}
+	transform_cached(),binarize_cached(){}
 
 void Grid::setCorner(int index,cv::Point point){
 	corners[index]=point;
