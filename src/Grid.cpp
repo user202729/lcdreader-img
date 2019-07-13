@@ -59,16 +59,18 @@ void Grid::setImage(cv::Mat const image_){
 	image=image_;
 }
 
-void Grid::drawBox(cv::Mat image){
-	cv::line(image,corners[0],corners[1],cv::Scalar(0,0,0));
-	cv::line(image,corners[0],corners[2],cv::Scalar(0,0,0));
-	cv::line(image,corners[3],corners[1],cv::Scalar(0,0,0));
-	cv::line(image,corners[3],corners[2],cv::Scalar(0,0,0));
+void Grid::drawBox(cv::Mat i1){
+	double const FAC=std::min((double)i1.rows/image.rows,(double)i1.cols/image.cols);
+	cv::line(i1,FAC*corners[0],FAC*corners[1],cv::Scalar(0,0,0));
+	cv::line(i1,FAC*corners[0],FAC*corners[2],cv::Scalar(0,0,0));
+	cv::line(i1,FAC*corners[3],FAC*corners[1],cv::Scalar(0,0,0));
+	cv::line(i1,FAC*corners[3],FAC*corners[2],cv::Scalar(0,0,0));
 }
 
-void Grid::drawAnchorInput(cv::Mat image){
+void Grid::drawAnchorInput(cv::Mat i1){
+	double const FAC=std::min((double)i1.rows/image.rows,(double)i1.cols/image.cols);
 	for(auto p:corners)
-		cv::circle(image,p,3,cv::Scalar(255,255,0),-1 /* filled */);
+		cv::circle(i1,FAC*p,3,cv::Scalar(255,255,0),-1 /* filled */);
 }
 
 void Grid::drawAnchorTransformed(cv::Mat image){

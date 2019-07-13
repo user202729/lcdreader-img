@@ -21,6 +21,7 @@ Grid grid;
 char const* const window_name="lcdreader-img";
 char const* const outwin_name="output";
 int zoom_factor=15;
+double image_zoom=1;
 
 
 int preview_alpha=35;
@@ -30,13 +31,13 @@ bool image_only=false;
 cv::Point out_cursor; // used to set data with Z/X
 
 void render(){
-	if(image_only){
-		cv::imshow(window_name,image);
-	}else{
+	{
 		cv::Mat i1;
-		image.copyTo(i1);
-		grid.drawBox(i1);
-		grid.drawAnchorInput(i1);
+		cv::resize(image,i1,{},image_zoom,image_zoom);
+		if(!image_only){
+			grid.drawBox(i1);
+			grid.drawAnchorInput(i1);
+		}
 		cv::imshow(window_name,i1);
 	}
 
@@ -72,7 +73,7 @@ void setOutCursor(cv::Point p){
 int heldCorner=-1; // [0..4[, or -1. For manipulating the grid.corners with mouse.
 cv::Point2d mouse;
 void mouseCallback(int event,int x,int y,int,void*){
-	mouse={(double)x,(double)y};
+	mouse={(double)x/image_zoom,(double)y/image_zoom};
 	switch(event){
 		case cv::EVENT_LBUTTONDOWN:
 		{
@@ -144,6 +145,7 @@ int main(int argc,char** argv){
 	{ h      | 10     | Grid height in pixels.                     }
 	{ f      | in.png | Image or video file name/URL.              }
 	{ zoom   | 15     | Zoom factor (pixel width) of output image. }
+	{ inzoom | 1.0    | Zoom factor of input image.                }
 	)");
 
 	if(args.has("help")){
@@ -165,6 +167,7 @@ int main(int argc,char** argv){
 	}
 
 	zoom_factor=args.get<int>("zoom");
+	image_zoom=args.get<double>("inzoom");
 
 	int width =image.cols;
 	int height=image.rows;
