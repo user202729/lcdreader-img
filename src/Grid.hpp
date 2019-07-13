@@ -10,8 +10,8 @@ struct Grid{
 	Grid();
 
 	// Also used for anchor points.
-	std::vector<cv::Point> const& getCorners() const {return corners;}
-	void setCorner(int index,cv::Point);
+	std::vector<cv::Point2d> const& getCorners() const {return corners;}
+	void setCorner(int index,cv::Point2d);
 
 	// Add an anchor point.
 	void addAnchor(cv::Point2d src);
@@ -63,7 +63,7 @@ struct Grid{
 	void setUndistort(bool);
 
 private:
-	std::vector<cv::Point> corners; // ul,dl,ur,dr, anchor dests
+	std::vector<cv::Point2d> corners; // ul,dl,ur,dr, anchor dests
 	std::vector<cv::Point> anchor_src; // 4 first items = corners
 	int maxA,maxB;
 

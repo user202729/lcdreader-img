@@ -11,7 +11,7 @@
 Grid::Grid():corners(4),anchor_src(4),use_distort(false),
 	transform_cached(),binarize_cached(){}
 
-void Grid::setCorner(int index,cv::Point point){
+void Grid::setCorner(int index,cv::Point2d point){
 	corners[index]=point;
 	binarize_cached=false;
 	transform_cached=false;

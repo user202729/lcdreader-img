@@ -70,9 +70,9 @@ void setOutCursor(cv::Point p){
 }
 
 int heldCorner=-1; // [0..4[, or -1. For manipulating the grid.corners with mouse.
-cv::Point mouse;
+cv::Point2d mouse;
 void mouseCallback(int event,int x,int y,int,void*){
-	mouse={x,y};
+	mouse={(double)x,(double)y};
 	switch(event){
 		case cv::EVENT_LBUTTONDOWN:
 		{
@@ -173,7 +173,7 @@ int main(int argc,char** argv){
 		save_config=(bool)config_f;
 		if(config_f){
 			for(int i=0;i<4;++i){
-				int x,y;
+				double x,y;
 				config_f>>x>>y;
 				grid.setCorner(i,{x,y});
 			}
@@ -187,9 +187,9 @@ int main(int argc,char** argv){
 		}
 		if(set_corners_to_default){
 			grid.setCorner(0,{0,0});
-			grid.setCorner(1,{0,height});
-			grid.setCorner(2,{width,0});
-			grid.setCorner(3,{width,height});
+			grid.setCorner(1,{0,(double)height});
+			grid.setCorner(2,{(double)width,0});
+			grid.setCorner(3,{(double)width,(double)height});
 		}
 		config_f.close();
 	}
