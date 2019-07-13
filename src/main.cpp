@@ -11,6 +11,7 @@
 #include<opencv2/core.hpp>
 #include<opencv2/highgui.hpp>
 #include<opencv2/imgproc.hpp>
+#include<opencv2/videoio.hpp>
 
 #include"Grid.hpp"
 
@@ -134,7 +135,7 @@ int main(int argc,char** argv){
 	{ help ? |        | Print help message.                        }
 	{ w      | 10     | Grid width in pixels.                      }
 	{ h      | 10     | Grid height in pixels.                     }
-	{ f      | in.png | File name.                                 }
+	{ f      | in.png | Image or video file name/URL.              }
 	{ zoom   | 15     | Zoom factor (pixel width) of output image. }
 	)");
 
@@ -145,9 +146,14 @@ int main(int argc,char** argv){
 
 	grid.setGridSize(args.get<int>("h"),args.get<int>("w"));
 
-	image=cv::imread(args.get<std::string>("f"));
-	if(!image.data){
-		std::cerr<<"imread failed\n";
+	cv::VideoCapture cap(args.get<std::string>("f"));
+	if(!cap.isOpened()){
+		std::cerr<<"Failed to open\n";
+		return 1;
+	}
+
+	if(!(cap.read(image))){
+		std::cerr<<"Failed to read image\n";
 		return 1;
 	}
 
@@ -196,6 +202,17 @@ int main(int argc,char** argv){
 	while(true){
 		char key=cv::waitKey(0);
 		switch(key){
+			case 'n':
+			{
+				cv::Mat nextframe;
+				if(cap.read(nextframe)){
+					grid.setImage(image=nextframe);
+					render();
+				}else
+					std::cerr<<"Failed to read next frame\n";
+				break;
+			}
+
 			{ /// Move corner
 				int cornerIndex;
 
