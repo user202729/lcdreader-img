@@ -8,7 +8,7 @@ INCLUDEDIRS :=
 
 CXX ?= g++
 CCEXT ?= cpp
-CCFLAGS ?= -O2 -pipe -g -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-deprecated-copy `pkg-config --cflags opencv4`
+CCFLAGS ?= -fdiagnostics-color=always -O2 -pipe -g -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-deprecated-copy `pkg-config --cflags opencv4`
 # -Wno-deprecated-copy: workaround for opencv bug: https://github.com/opencv/opencv/issues/14933
 
 CCLINK ?= -pipe `pkg-config --libs opencv4`
