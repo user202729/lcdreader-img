@@ -79,13 +79,20 @@ void mouseCallback(int event,int x,int y,int,void*){
 			if(heldCorner>=0)
 				break;
 			auto const& corners=grid.getCorners();
+
+			int best_i=-1;
+			double ans=20; // only consider points with distance <= this
 			for(unsigned i=0;i<corners.size();++i){
-				if(cv::norm(corners[i]-mouse)<=20){
-					heldCorner=i;
-					grid.setCorner(i,mouse);
-					render();
-					break;
+				double ans_i=cv::norm(corners[i]-mouse);
+				if(ans_i<=ans){
+					best_i=i;
+					ans=ans_i;
 				}
+			}
+			if(best_i>=0){
+				heldCorner=best_i;
+				grid.setCorner(best_i,mouse);
+				render();
 			}
 			break;
 		}
