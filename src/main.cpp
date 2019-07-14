@@ -27,7 +27,10 @@ double image_zoom=1;
 
 int preview_alpha=35;
 
-bool preview=false;
+enum class Preview{
+	NONE,BLOCK,EDGES,N_MODES
+};
+Preview preview_mode=Preview::NONE;
 bool image_only=false;
 cv::Point out_cursor; // used to set data with Z/X
 
@@ -44,12 +47,21 @@ void render(){
 
 	cv::Mat i1=grid.extractScreen(zoom_factor);
 	if(!image_only){
-		if(preview){
-			grid.binarize();
-			i1=grid.drawPreview(i1,preview_alpha/255.);
-		}else{
-			grid.drawAnchorTransformed(i1);
-			grid.drawGrid(i1);
+		switch(preview_mode){
+			case Preview::NONE:
+				grid.drawAnchorTransformed(i1);
+				grid.drawGrid(i1);
+				break;
+			case Preview::BLOCK:
+				grid.binarize();
+				i1=grid.drawPreview(i1,preview_alpha/255.);
+				break;
+			case Preview::EDGES:
+				grid.binarize();
+				grid.drawPreviewEdges(i1);
+				break;
+			default:
+				assert(false);
 		}
 
 		// draw out_cursor
@@ -315,7 +327,7 @@ move_corner:
 
 			case 'p':
 				/// Preview (average color) - toggle
-				preview^=true;
+				preview_mode=Preview(((int)preview_mode+1)%(int)Preview::N_MODES);
 				render();
 				break;
 
@@ -346,7 +358,7 @@ change_pixel:
 						for(int a=0;a<m.rows;++a)
 						for(int b=0;b<m.cols;++b)
 							grid.setDataManual(a,b,m(a,b));
-						if(preview)
+						if(preview_mode!=Preview::NONE)
 							render();
 						break;
 					}

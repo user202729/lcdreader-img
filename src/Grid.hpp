@@ -33,6 +33,9 @@ struct Grid{
 	/// zoom factor.
 	cv::Mat drawPreview(cv::Mat const image,double alpha);
 
+	/// Draw preview as red edges when the adjacent pixels differ.
+	void drawPreviewEdges(cv::Mat& image)const;
+
 	/// Draw horizontal/vertical grid lines, excluding borders.
 	void drawGrid(cv::Mat image);
 

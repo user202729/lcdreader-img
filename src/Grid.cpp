@@ -163,6 +163,25 @@ cv::Mat Grid::drawPreview(cv::Mat const image,double alpha){
 	return dest;
 }
 
+void Grid::drawPreviewEdges(cv::Mat& image)const{
+	assert(binarize_cached);
+	cv::Vec3b color(0,0,255); // red
+
+	cv::line(image,corners[0],corners[1],cv::Scalar(0,0,0));
+
+	auto fx=image.rows/(double)getMaxA();
+	auto fy=image.cols/(double)getMaxB();
+
+	for(int a=0;a<maxA;++a)
+	for(int b=1;b<maxB;++b)
+		if(getData(a,b-1)!=getData(a,b))
+			cv::line(image,{int(b*fy),int(a*fx)},{int(b*fy),int((a+1)*fx)},color);
+	for(int a=1;a<maxA;++a)
+	for(int b=0;b<maxB;++b)
+		if(getData(a-1,b)!=getData(a,b))
+			cv::line(image,{int(b*fy),int(a*fx)},{int((b+1)*fy),int(a*fx)},color);
+}
+
 void Grid::binarize(){
 	if(binarize_cached)
 		return;
