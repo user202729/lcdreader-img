@@ -159,6 +159,7 @@ int main(int argc,char** argv){
 	{ f      | in.png | Image or video file name/URL.              }
 	{ zoom   | 15     | Zoom factor (pixel width) of output image. }
 	{ inzoom | 1.0    | Zoom factor of input image.                }
+	{ s skip | 1      | Number of frames to skip.                  }
 	)");
 
 	if(args.has("help")){
@@ -173,6 +174,8 @@ int main(int argc,char** argv){
 		std::cerr<<"Failed to open\n";
 		return 1;
 	}
+
+	cap.set(cv::CAP_PROP_POS_FRAMES,args.get<unsigned>("s"));
 
 	if(!(cap.read(image))){
 		std::cerr<<"Failed to read image\n";
