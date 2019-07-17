@@ -267,10 +267,7 @@ move_corner:
 					case 'c':
 					{
 						/// Recognize digits
-						cv::Mat scr=grid.extractScreen(FACTOR);
-						cv::cvtColor(scr,scr,cv::COLOR_BGR2GRAY);
-						assert(scr.type()==CV_8U);
-						std::cout<<recognizeDigits(255-scr)<<'\n';
+						std::cout<<grid.recognizeDigits()<<'\n';
 						break;
 					}
 				}
@@ -409,17 +406,11 @@ change_pixel:
 			{
 				std::ofstream out("out.txt");
 
-				int i=0;
-				grid.binarize();
-				for(int row=0;row<grid.getMaxA();++row){
-					for(int col=0;col<grid.getMaxB();++col){
-						out<<(grid.getData(row,col)?'1':'0');
-						++i;
-					}
-					out<<'\n';
+				while(cap.read(image)){
+					grid.setImage(image);
+					out<<grid.recognizeDigits()<<'\n';
 				}
-				out.close();
-				break;
+				goto break_outer;
 			}
 		}
 	}

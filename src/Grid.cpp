@@ -227,6 +227,12 @@ signed char Grid::getData(int a,int b)const{
 	return d;
 }
 
+std::string Grid::recognizeDigits(){
+	binarize();
+	assert(data.type()==CV_8U);
+	return ::recognizeDigits(data);
+}
+
 void Grid::setUndistort(bool value){
 	use_distort=value;
 	binarize_cached=false;

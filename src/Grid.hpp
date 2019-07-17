@@ -2,7 +2,7 @@
 
 #include<vector>
 #include<cassert>
-#include<vector>
+#include<string>
 
 #include<opencv2/core.hpp>
 
@@ -56,6 +56,9 @@ struct Grid{
 	 */
 
 	signed char getData(int a,int b)const;
+
+	/// Ignores data_manual value.
+	std::string recognizeDigits();
 
 	void setDataManual(int a,int b,int8_t value);
 
