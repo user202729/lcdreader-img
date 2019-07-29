@@ -28,6 +28,7 @@ Keyboard shortcuts:
 * `Shift+L`: Go forward 101 frames.
 * `G`: Go to frame number (read from stdin)
 * `N`: Go to next video frame.
+* `Space`: Toggle play/pause.
 * `RF`: Refresh the image.
 * `C`: Set data manual according to a hexadecimal digit pattern (enter 4 digits)
 * `RC`: Recognize the hexadecimal digits. Output to stdout.

@@ -160,6 +160,7 @@ int main(int argc,char** argv){
 	{ zoom   | 15     | Zoom factor (pixel width) of output image. }
 	{ inzoom | 1.0    | Zoom factor of input image.                }
 	{ s skip | 1      | Number of frames to skip.                  }
+	{ p play | false  | Auto-play the video on start.              }
 	)");
 
 	if(args.has("help")){
@@ -225,8 +226,12 @@ int main(int argc,char** argv){
 	cv::setMouseCallback(window_name,mouseCallback,nullptr);
 	cv::setMouseCallback(outwin_name,outwinMouseCallback,nullptr);
 
+	bool playing=args.get<bool>("p");
+
 	while(true){
-		char key=cv::waitKey(0);
+		char key=cv::waitKey(playing
+				?std::max(1,int(1000/cap.get(cv::CAP_PROP_FPS)))
+				:0);
 		switch(key){
 			case 'H': // set frame (seek)
 				cap.set(cv::CAP_PROP_POS_FRAMES,std::max(
@@ -248,6 +253,7 @@ int main(int argc,char** argv){
 				}
 				goto read_frame;
 
+			case -1:
 			case 'n':
 			{
 read_frame:
@@ -255,10 +261,16 @@ read_frame:
 				if(cap.read(nextframe)){
 					grid.setImage(image=nextframe);
 					render();
-				}else
+				}else{
 					std::cerr<<"Failed to read next frame\n";
+					playing=false;
+				}
 				break;
 			}
+
+			case ' ':
+				playing=!playing;
+				break;
 
 			{ /// Move corner
 				int cornerIndex;
