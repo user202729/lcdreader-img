@@ -24,6 +24,9 @@ Keyboard shortcuts:
 * `X`: Set the pixel under the output cursor to 1.
 * `U1`: Allow undistorting the image. The image is undistorted assuming the pinhole camera model.
 * `U0`: Disallow undistorting the image, only homography transformation is used. This is the default and is preferred if the image part is small (the distortion is not significant) or there are on a few corner/anchor points.
+* `Shift+H`: Go back 99 frames.
+* `Shift+L`: Go forward 101 frames.
+* `G`: Go to frame number (read from stdin)
 * `N`: Go to next video frame.
 * `RF`: Refresh the image.
 * `C`: Set data manual according to a hexadecimal digit pattern (enter 4 digits)

@@ -228,8 +228,29 @@ int main(int argc,char** argv){
 	while(true){
 		char key=cv::waitKey(0);
 		switch(key){
+			case 'H': // set frame (seek)
+				cap.set(cv::CAP_PROP_POS_FRAMES,std::max(
+						0.,
+						cap.get(cv::CAP_PROP_POS_FRAMES)-100));
+				goto read_frame;
+
+			case 'L':
+				cap.set(cv::CAP_PROP_POS_FRAMES,std::min(
+						cap.get(cv::CAP_PROP_FRAME_COUNT)-1,
+						cap.get(cv::CAP_PROP_POS_FRAMES)+100));
+				goto read_frame;
+
+			case 'g':
+				std::cout<<"Frame number: ";
+				{
+					int frame;std::cin>>frame;
+					cap.set(cv::CAP_PROP_POS_FRAMES,frame);
+				}
+				goto read_frame;
+
 			case 'n':
 			{
+read_frame:
 				cv::Mat nextframe;
 				if(cap.read(nextframe)){
 					grid.setImage(image=nextframe);
