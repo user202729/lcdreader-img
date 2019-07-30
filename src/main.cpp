@@ -269,6 +269,7 @@ int main(int argc,char** argv){
 
 			case 'g':
 				std::cout<<"Current frame number: "<<cap.get(cv::CAP_PROP_POS_FRAMES)<<
+					"/"<<cap.get(cv::CAP_PROP_FRAME_COUNT)<<
 					"; New frame number (-1 to exit): ";
 				{
 					int frame;
