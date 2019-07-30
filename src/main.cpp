@@ -30,6 +30,7 @@ int preview_alpha=35;
 enum class Preview{
 	NONE,BLOCK,EDGES,
 	BINARIZE,
+	EDGES_BINARIZE,
 	N_MODES
 };
 Preview preview_mode=Preview::NONE;
@@ -68,6 +69,16 @@ void render(){
 						cv::ADAPTIVE_THRESH_GAUSSIAN_C,
 						cv::THRESH_BINARY,
 						zoom_factor*9,5);
+				break;
+			case Preview::EDGES_BINARIZE:
+				cv::cvtColor(i1,i1,cv::COLOR_BGR2GRAY);
+				cv::adaptiveThreshold(i1,i1,255,
+						cv::ADAPTIVE_THRESH_GAUSSIAN_C,
+						cv::THRESH_BINARY,
+						zoom_factor*9,5);
+				grid.binarize();
+				cv::cvtColor(i1,i1,cv::COLOR_GRAY2BGR);
+				grid.drawPreviewEdges(i1);
 				break;
 			default:
 				assert(false);
