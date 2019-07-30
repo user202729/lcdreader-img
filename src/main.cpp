@@ -255,12 +255,16 @@ int main(int argc,char** argv){
 				goto read_frame;
 
 			case 'g':
-				std::cout<<"Frame number: ";
+				std::cout<<"Current frame number: "<<cap.get(cv::CAP_PROP_POS_FRAMES)<<
+					"; New frame number (-1 to exit): ";
 				{
-					int frame;std::cin>>frame;
-					cap.set(cv::CAP_PROP_POS_FRAMES,frame);
+					int frame;
+					if(std::cin>>frame&&frame!=-1){
+						cap.set(cv::CAP_PROP_POS_FRAMES,frame);
+						goto read_frame;
+					}else
+						break;
 				}
-				goto read_frame;
 
 			case -1:
 			case 'n':
