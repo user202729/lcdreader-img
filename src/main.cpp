@@ -28,7 +28,9 @@ double image_zoom=1;
 int preview_alpha=35;
 
 enum class Preview{
-	NONE,BLOCK,EDGES,N_MODES
+	NONE,BLOCK,EDGES,
+	BINARIZE,
+	N_MODES
 };
 Preview preview_mode=Preview::NONE;
 bool image_only=false;
@@ -59,6 +61,13 @@ void render(){
 			case Preview::EDGES:
 				grid.binarize();
 				grid.drawPreviewEdges(i1);
+				break;
+			case Preview::BINARIZE:
+				cv::cvtColor(i1,i1,cv::COLOR_BGR2GRAY);
+				cv::adaptiveThreshold(i1,i1,255,
+						cv::ADAPTIVE_THRESH_GAUSSIAN_C,
+						cv::THRESH_BINARY,
+						zoom_factor*9,5);
 				break;
 			default:
 				assert(false);
