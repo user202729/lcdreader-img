@@ -181,6 +181,7 @@ int main(int argc,char** argv){
 	{ inzoom | 1.0    | Zoom factor of input image.                }
 	{ s skip | 1      | Number of frames to skip.                  }
 	{ p play | false  | Auto-play the video on start.              }
+	{ conf   | config.txt | Config file name.                      }
 	)");
 
 	if(args.has("help")){
@@ -214,9 +215,10 @@ int main(int argc,char** argv){
 	cv::namedWindow(window_name,cv::WINDOW_AUTOSIZE);
 	cv::namedWindow(outwin_name,cv::WINDOW_AUTOSIZE);
 
+	std::string const config_file_name=args.get<std::string>("conf");
 	bool save_config;
 	{
-		std::ifstream config_f("config.txt");
+		std::ifstream config_f(config_file_name);
 		save_config=(bool)config_f;
 		if(config_f){
 			for(int i=0;i<4;++i){
@@ -474,7 +476,7 @@ change_pixel:
 break_outer:
 
 	if(save_config){
-		std::ofstream config_f("config.txt");
+		std::ofstream config_f(config_file_name);
 		for(auto p:grid.getCorners())
 			config_f<<p.x<<' '<<p.y<<'\n';
 	}
