@@ -7,6 +7,7 @@
 #include<algorithm>
 #include<cstdlib>
 #include<cassert>
+#include<ctime>
 
 #include<opencv2/core.hpp>
 #include<opencv2/highgui.hpp>
@@ -466,9 +467,27 @@ change_pixel:
 			{
 				std::ofstream out("out.txt");
 
+				std::clock_t start=std::clock();
+				int n_done=0;
+				int last_quotient=0;
+				int const REPORT_INTERVAL=2*CLOCKS_PER_SEC;
+				auto const total_process=int(cap.get(cv::CAP_PROP_FRAME_COUNT)-cap.get(cv::CAP_PROP_POS_FRAMES));
+
 				while(cap.read(image)){
 					grid.setImage(image);
 					out<<grid.recognizeDigits()<<'\n';
+					++n_done;
+
+					auto current_diff=std::clock()-start;
+					if(current_diff/REPORT_INTERVAL!=last_quotient){
+						last_quotient=current_diff/REPORT_INTERVAL;
+						double elapsed=current_diff/(double)CLOCKS_PER_SEC;
+						std::cerr<<
+							"Elapsed: "<<elapsed<<", "
+							"processed: "<<n_done<<"/"<<total_process<<", "
+							"ETA: "<<elapsed*double(total_process-n_done)/n_done<<
+							'/'<<elapsed*(double)total_process/n_done<<'\n';
+					}
 				}
 				goto break_outer;
 			}
