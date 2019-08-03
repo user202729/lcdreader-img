@@ -1,0 +1,2 @@
+#!/bin/sh
+bin/main -w=43 -h=12 -f="testvid.mp4" "$@"

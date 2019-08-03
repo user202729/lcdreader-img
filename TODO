@@ -1,0 +1,41 @@
+DIGIT RECOG
+
+https://stackoverflow.com/questions/13319730/suggestions-for-digit-recognition/13319850#13319850
+
+
+WARP PERSPECTIVE
+
+
+android - OpenCV warpPerspective slow performance - Stack Overflow
+
+https://stackoverflow.com/questions/32880842/opencv-warpperspective-slow-performance
+perspectiveTransform
+
+
+VIDEO STAB
+
+
+
+https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_video/py_lucas_kanade/py_lucas_kanade.html
+https://www.learnopencv.com/video-stabilization-using-point-feature-matching-in-opencv/
+https://nghiaho.com/?p=2093
+http://nghiaho.com/uploads/code/videostab.cpp
+https://docs.opencv.org/4.0.0/dc/d6b/group__video__track.html#ga473e4b886d0bcc6b65831eb88ed93323
+
+
+
+
+FEATURE HOMO == HUGE TODO
+
+https://docs.opencv.org/3.0-beta/doc/tutorials/features2d/feature_homography/feature_homography.html#feature-homography
+
+
+https://stackoverflow.com/questions/28124719/how-to-do-character-matching-in-opencv
+http://web.archive.org/web/20150315145440/http://blog.damiles.com/2008/11/basic-ocr-in-opencv/
+https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_ml/py_knn/py_knn_opencv/py_knn_opencv.html
+https://docs.opencv.org/3.0-beta/modules/ml/doc/k_nearest_neighbors.html
+https://docs.opencv.org/3.0-beta/modules/imgproc/doc/object_detection.html?highlight=matchtemplate
+https://docs.opencv.org/3.0-beta/doc/py_tutorials/py_imgproc/py_template_matching/py_template_matching.html
+
+
+0xd542: <fe> <01> ⁻¹ 𝐅 2 0 0 0 0 0 0 0 Abs( ² 𝐞 𝐅 2 0 . . . . . . . . . . . . . . . . . . . . 0 0 0 0 0 0 0 0 , ² d/d𝒙( ▸a+b𝐢 0 0 0 0 ⌟ <03> 2 0 <0c> M 2 0 - ▸a+b𝐢 0 0 0 0 0 0 × × 0 0 × × 0 0 × × 0 0 or <9c> 0 0 0 0 1 <fe> <12> ÷ 0 0 A ² × × 0 0 <10> ÷ 0 0

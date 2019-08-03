@@ -1,0 +1,4 @@
+#!/bin/sh
+# PATHTOFILE="$HOME/mnt/data/vid4.mp4"
+PATHTOFILE="/tmp/VID_20190803_191724.mp4"
+bin/main -w=43 -h=12 --conf="/tmp/config_tmp_96.txt" -f="$PATHTOFILE" -inzoom=5 "$@"

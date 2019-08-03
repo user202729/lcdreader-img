@@ -1,0 +1,2 @@
+#!/bin/sh
+bin/main -w=43 -h=12 --conf="config_vid3.txt" -f="$HOME/mnt/data/vid3.mp4" -inzoom=5 -s=250 "$@"

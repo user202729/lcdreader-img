@@ -1,0 +1,4 @@
+#!/bin/sh
+# PATHTOFILE="$HOME/mnt/data/vid4.mp4"
+PATHTOFILE="/tmp/vid4.mp4"
+bin/main -w=43 -h=12 --conf="config_vid4.txt" -f="$PATHTOFILE" -inzoom=5 -s=182 "$@"

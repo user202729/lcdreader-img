@@ -19,21 +19,28 @@ void Grid::setCorner(int index,cv::Point2d point){
 	transform_cached=false;
 }
 
-void Grid::addAnchor(cv::Point2d src){
+void Grid::reverseTransform(cv::InputOutputArray _pts){
 	computeTransform();
+	cv::Mat pts=_pts.getMat();
 
-	anchor_src.push_back(src);
-	std::array<cv::Point2d,1> arr{src};
-	cv::perspectiveTransform(arr,arr,transform.inv());
+	cv::perspectiveTransform(pts,pts,transform.inv());
 
 	if(!std::isnan(camera_matrix(0,0))){
-		// reverse of undistortPoints(arr,arr) -- https://stackoverflow.com/a/35016615
-		cv::undistortPoints(arr,arr,camera_matrix,cv::Mat());
-		std::array<cv::Point3d,1> arr3d;
-		cv::convertPointsToHomogeneous(arr,arr3d);
-		cv::projectPoints(arr3d,cv::Matx31d{},cv::Matx31d{},
-				camera_matrix,dist_coeffs,arr);
+		// reverse of undistortPoints(pts,pts) -- https://stackoverflow.com/a/35016615
+		cv::undistortPoints(pts,pts,camera_matrix,cv::Mat());
+		cv::Mat pts3d;
+		cv::convertPointsToHomogeneous(pts,pts3d);
+		cv::projectPoints(pts3d,cv::Matx31d{},cv::Matx31d{},
+				camera_matrix,dist_coeffs,pts);
 	}
+
+}
+
+void Grid::addAnchor(cv::Point2d src){
+	anchor_src.push_back(src);
+	std::array<cv::Point2d,1> arr{src};
+
+	reverseTransform(arr);
 
 	corners.push_back(arr[0]);
 	// assume the transformation is correct after this operation
@@ -189,8 +196,10 @@ void Grid::binarize(){
 	int const factor=7; // %2 != 0
 	cv::Mat img=extractScreen(factor);
 	cv::cvtColor(img,img,cv::COLOR_BGR2GRAY);
-	cv::adaptiveThreshold(img,img,255,cv::ADAPTIVE_THRESH_GAUSSIAN_C,
-			cv::THRESH_BINARY,factor*9,2);
+	cv::adaptiveThreshold(img,img,255,
+			// cv::ADAPTIVE_THRESH_GAUSSIAN_C,
+			cv::ADAPTIVE_THRESH_MEAN_C,
+			cv::THRESH_BINARY,factor*9,12);
 	cv::dilate(img,img,cv::Mat());
 	cv::erode(img,img,cv::Mat());
 

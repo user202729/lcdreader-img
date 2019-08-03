@@ -1,0 +1,2 @@
+#!/bin/sh
+bin/main -h=22 -w=192 -f='in.png' --zoom=7 "$@"

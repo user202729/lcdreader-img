@@ -1,0 +1,2 @@
+#!/bin/sh
+bin/main -w=43 -h=12 -f="vid2.mp4" -inzoom=6 --conf=config_vid2.txt "$@"

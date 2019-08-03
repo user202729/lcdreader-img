@@ -13,6 +13,10 @@ struct Grid{
 	std::vector<cv::Point2d> const& getCorners() const {return corners;}
 	void setCorner(int index,cv::Point2d);
 
+	/// Utility function, convert grid coordinate (0..maxA, 0..maxB) to image
+	/// coordinate.
+	void reverseTransform(cv::InputOutputArray _pts);
+
 	// Add an anchor point.
 	void addAnchor(cv::Point2d src);
 

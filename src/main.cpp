@@ -12,10 +12,26 @@
 #include<opencv2/core.hpp>
 #include<opencv2/highgui.hpp>
 #include<opencv2/imgproc.hpp>
+#include<opencv2/calib3d.hpp>
+#include<opencv2/video.hpp>
 #include<opencv2/videoio.hpp>
 
 #include"Grid.hpp"
 #include"DigitRecognition.hpp"
+#include"VideoStabilize.hpp"
+
+
+
+// method for output
+
+#define METHOD_STEP 0
+#define METHOD_NO_MOVEMENT 1
+#define METHOD_STEP_TO_FIRST 2 // calc optical flow first frame <-> nth frame, avoid drift?
+
+#define METHOD METHOD_STEP_TO_FIRST
+
+
+
 
 cv::Mat image;
 Grid grid;
@@ -256,6 +272,48 @@ int main(int argc,char** argv){
 				?std::max(1,int(1000/cap.get(cv::CAP_PROP_FPS)))
 				:0);
 		switch(key){
+			case 'S':
+			{ // video stabilize
+				static int refFrame=-1;
+				switch(cv::waitKey()){
+					case 's': // set
+						stab::setRefImage(image);
+						refFrame=cap.get(cv::CAP_PROP_POS_FRAMES);
+						break;
+
+					case 'g': // go to ref image
+						if(refFrame<0){
+							std::cerr<<"refFrame not set\n";
+							break;
+						}
+
+						cap.set(cv::CAP_PROP_POS_FRAMES,refFrame-1);
+						cap>>image;
+						// fallthrough
+
+					case 'r': // reset grid corners
+						for(unsigned i=0;i<stab::ref_corners.size();++i)
+							grid.setCorner(i,stab::ref_corners[i]);
+						render();
+						break;
+
+					case 'a': // apply
+						if(refFrame<0){
+							std::cerr<<"refFrame not set\n";
+							break;
+						}
+						save_config=false; // for safety
+
+						stab::next_image=image;
+						stab::computeNextImageFeatures();
+						stab::computeNextImageCorners();
+						stab::setGridCornersToNextImage();
+						render();
+						break;
+				}
+				break;
+			}
+
 			case 'H': // set frame (seek)
 				cap.set(cv::CAP_PROP_POS_FRAMES,std::max(
 						0.,
@@ -281,7 +339,16 @@ int main(int argc,char** argv){
 						break;
 				}
 
-			case -1:
+			case 'N': // advance backward
+				{
+					int frame=(int)cap.get(cv::CAP_PROP_POS_FRAMES);
+					if(frame!=1){
+						cap.set(cv::CAP_PROP_POS_FRAMES,frame-2);
+						goto read_frame;
+					}
+					break;
+				}
+
 			case 'n':
 			{
 read_frame:
@@ -473,23 +540,174 @@ change_pixel:
 				int const REPORT_INTERVAL=2*CLOCKS_PER_SEC;
 				auto const total_process=int(cap.get(cv::CAP_PROP_FRAME_COUNT)-cap.get(cv::CAP_PROP_POS_FRAMES));
 
-				while(cap.read(image)){
-					grid.setImage(image);
-					out<<grid.recognizeDigits()<<'\n';
-					++n_done;
+				stab::setRefImage(image);
 
+				double const minGridSpacing=stab::computeGridSpacing();
+				std::cerr<<"minGridSpacing="<<minGridSpacing<<'\n';
+
+				auto const processImage=[&](cv::Mat image_){
+					/// Assume grid corners are correct w.r.t. image_.
+					grid.setImage(image=image_);
+					auto digits=grid.recognizeDigits();
+					out<<digits<<'\n';
+
+					++n_done;
 					auto current_diff=std::clock()-start;
 					if(current_diff/REPORT_INTERVAL!=last_quotient){
+						render();
+						cv::waitKey(std::max(1,int(1000/cap.get(cv::CAP_PROP_FPS))));
+
 						last_quotient=current_diff/REPORT_INTERVAL;
 						double elapsed=current_diff/(double)CLOCKS_PER_SEC;
 						std::cerr<<
 							"Elapsed: "<<elapsed<<", "
+							"current ans: "<<digits<<", "
 							"processed: "<<n_done<<"/"<<total_process<<", "
 							"ETA: "<<elapsed*double(total_process-n_done)/n_done<<
 							'/'<<elapsed*(double)total_process/n_done<<'\n';
 					}
+				};
+
+				// ===============
+
+
+				int const STEP=500;
+				// if there is little or no motion between frame X and X+STEP
+				// it's assumed that there's no motion in all the middle frames
+
+#if 0
+#elif METHOD==METHOD_STEP_TO_FIRST
+
+				auto prev_image=stab::ref_image;
+				auto prev_features=stab::ref_features;
+
+				// DEBUG
+				auto ref_image_sum=cv::sum(stab::ref_image);
+				auto ref_features_sum=cv::sum(stab::ref_features);
+
+
+				while(true){
+					assert(ref_image_sum==cv::sum(stab::ref_image));
+					assert(ref_features_sum==cv::sum(stab::ref_features));
+
+					auto pos=cap.get(cv::CAP_PROP_POS_FRAMES);
+					cap.set(cv::CAP_PROP_POS_FRAMES,pos+STEP-1);
+					bool read_success=cap.read(stab::next_image);
+					cap.set(cv::CAP_PROP_POS_FRAMES,pos);
+					if(read_success&&(
+								stab::computeNextImageFeatures(),
+								!stab::largeMovement(prev_features,stab::next_features,minGridSpacing/3)
+								)){
+						// there exists STEP frames with no large movement
+						// process frames without recompute grid coordinate
+
+
+						cv::Mat tmp;
+						for(int i=0;i<STEP;++i){
+							bool success=cap.read(tmp);
+							assert(success);
+							processImage(tmp);
+						}
+
+						stab::computeNextImageCorners();
+						stab::setGridCornersToNextImage();
+
+						/*
+						double norm=cv::norm(tmp,stab::next_image,cv::NORM_L1);
+						if(!(
+									// tmp.type()==stab::next_image.type()&&
+									// tmp.size==stab::next_image.size&&
+									// std::equal(tmp.begin<uchar>(),tmp.end<uchar>(),
+									// 	stab::next_image.begin<uchar>())
+									norm<=1e-10
+									)){
+							std::cerr<<"norm="<<norm<<'\n';
+							cv::imshow("I1",prev_image);
+							cv::imshow("I2",stab::next_image);
+							while(cv::waitKey()!='q');
+							// NOTE: frame 105412 or so: norm~=1e5, images look identical???
+						}
+						*/
+					}else{
+						// recompute grid coordinate for each frame
+						if(read_success){ // Display difference
+							std::cerr<<"Large movement - cap frame = "<<pos
+								<<" (/STEP="<<(int)pos/STEP<<")\n";
+
+							double const THRES=minGridSpacing/3;
+
+							cv::Mat i1=prev_image.clone();
+							cv::Mat i2=stab::next_image.clone();
+							for(unsigned i=0;i<prev_features.size();++i){
+								cv::Scalar color=
+									cv::norm(prev_features[i]-stab::next_features[i])>THRES?
+									cv::Scalar(255,0,0): // blue = too far
+									cv::Scalar(0,0,255);
+								cv::circle(i1,prev_features[i],3,color,-1);
+								cv::circle(i2,stab::next_features[i],3,color,-1);
+							}
+
+							cv::imshow("I1",i1);
+							cv::imshow("I2",i2);
+
+							while(cv::waitKey()!='q');
+						}
+
+						for(int i=0;i<STEP;++i){
+							if(!cap.read(stab::next_image))
+								goto break_outer;
+
+							stab::computeNextImageFeatures();
+							stab::computeNextImageCorners();
+							stab::setGridCornersToNextImage();
+							processImage(stab::next_image);
+						}
+					}
+					prev_image=stab::next_image;
+					prev_features=stab::next_features;
+				}
+
+#elif METHOD==METHOD_STEP
+				while(true){
+					auto pos=cap.get(cv::CAP_PROP_POS_FRAMES);
+					cap.set(cv::CAP_PROP_POS_FRAMES,pos+STEP-1);
+					if(cap.read(stab::next_image)&&!stab::computeNextImageFeatures(true)){
+						// there exists STEP frames with no large movement
+						// process frames without recompute grid coordinate
+						cap.set(cv::CAP_PROP_POS_FRAMES,pos);
+						cv::Mat tmp;
+						for(int i=0;i<STEP;++i){
+							bool success=cap.read(tmp);
+							assert(success);
+							processImage(tmp);
+						}
+
+						stab::setNextImageAsRef();
+					}else{
+						// recompute grid coordinate for each frame
+						cap.set(cv::CAP_PROP_POS_FRAMES,pos);
+						std::cerr<<"Large movement - cap frame = "<<pos<<'\n';
+						for(int i=0;i<STEP;++i){
+							if(!cap.read(stab::next_image))
+								goto break_outer;
+
+							stab::computeNextImageFeatures(false);
+							stab::setNextImageAsRef();
+							processImage(stab::ref_image);
+						}
+					}
+				}
+
+#elif METHOD==METHOD_NO_MOVEMENT
+				while(cap.read(stab::next_image)){
+					processImage(stab::next_image);
 				}
 				goto break_outer;
+
+#else
+				static_assert(false,"Method not supported\n");
+#endif
+
 			}
 		}
 	}
