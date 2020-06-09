@@ -9,6 +9,11 @@
 #include<cassert>
 #include<ctime>
 
+#if USE_X11
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#endif
+
 #include<opencv2/core.hpp>
 #include<opencv2/highgui.hpp>
 #include<opencv2/imgproc.hpp>
@@ -251,10 +256,26 @@ int main(int argc,char** argv){
 
 	bool playing=args.get<bool>("p");
 
+#if USE_X11
+	Display* dpy = XOpenDisplay(NULL);
+	KeyCode const shift_key_code = XKeysymToKeycode( dpy, XK_Shift_L );
+#endif
+
+
 	while(true){
 		char key=cv::waitKey(playing
 				?std::max(1,int(1000/cap.get(cv::CAP_PROP_FPS)))
 				:0);
+
+#if USE_X11
+		if('a'<=key and key<='z'){
+			char keys_return[32];
+			XQueryKeymap( dpy, keys_return );
+			if( keys_return[ shift_key_code>>3 ] & ( 1<<(shift_key_code&7) ) ){
+				key=key-'a'+'A';
+			}
+		}
+#endif
 		switch(key){
 			case 'H': // set frame (seek)
 				cap.set(cv::CAP_PROP_POS_FRAMES,std::max(
@@ -500,6 +521,10 @@ break_outer:
 		for(auto p:grid.getCorners())
 			config_f<<p.x<<' '<<p.y<<'\n';
 	}
+
+#if USE_X11
+	XCloseDisplay(dpy);
+#endif
 
 	return 0;
 }

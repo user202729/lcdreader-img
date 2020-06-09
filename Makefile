@@ -4,14 +4,25 @@ DEPDIR := dep
 BINDIR := bin
 OBJDIR := obj
 
+USE_X11 ?= 1
+
 INCLUDEDIRS :=
 
 CXX ?= g++
 CCEXT ?= cpp
-CCFLAGS ?= -fdiagnostics-color=always -O2 -pipe -g -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-deprecated-copy `pkg-config --cflags opencv4`
+CCFLAGS1 := -fdiagnostics-color=always -O2 -pipe -g -std=c++11 -Wall -Wextra -Werror -pedantic -Wno-deprecated-copy `pkg-config --cflags opencv4`
 # -Wno-deprecated-copy: workaround for opencv bug: https://github.com/opencv/opencv/issues/14933
 
-CCLINK ?= -pipe `pkg-config --libs opencv4`
+CCLINK1 := -pipe `pkg-config --libs opencv4`
+
+ifeq ($(USE_X11), 1)
+	CCFLAGS1 += -DUSE_X11
+	CCLINK1 += -lX11
+endif
+
+
+CCFLAGS ?= $(CCFLAGS1)
+CCLINK ?= $(CCLINK1)
 
 FILES := $(shell find $(SRCDIR) -name *.$(CCEXT))
 

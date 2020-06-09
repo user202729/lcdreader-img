@@ -2,7 +2,15 @@
 
 Read pixel values from a picture of a (low-resolution) LCD screen.
 
-Usage:
+### Note:
+
+On different platforms, `cv::waitKey()` function might not return different key values
+depend on whether Shift key is pressed; however some of the keyboard shortcuts depends on that.
+Because (as far as I know) there's no way to solve the problem in pure OpenCV,
+if `USE_X11` is 1 in the makefile then X library is used to determine the state of the Shift key.
+On Windows, `make USE_X11=0` is required.
+
+### Usage:
 * Read input from `in.png` (or the file specified on the command line),
   output binary data to `out.txt`.
 * If a file `config.txt` exists, the positions of the corners position are saved to/
@@ -10,7 +18,9 @@ Usage:
 
 Command-line shortcut: Enter `--help` for details.
 
-Keyboard shortcuts:
+The command-line flag format must be `-<flag>=<value`. For example `-f=a.mp4`.
+
+### Keyboard shortcuts:
 
 * `WESD`: Move the corresponding grid corner (assume QWERTY keyboard layout) to the
   mouse pointer. Drag-and-drop the corners is also supported.
@@ -34,7 +44,7 @@ Keyboard shortcuts:
 * `RC`: Recognize the hexadecimal digits. Output to stdout.
 * `O`: Output.
 
-Mouse control:
+### Mouse control:
 
 * Drag corner/anchor on the input image to move.
 * Move mouse on the transformed image to move the output cursor.
