@@ -495,6 +495,10 @@ change_pixel:
 				auto const total_process=int(cap.get(cv::CAP_PROP_FRAME_COUNT)-cap.get(cv::CAP_PROP_POS_FRAMES));
 
 				while(cap.read(image)){
+					// print position in nanosecond
+					auto ns=int64_t(cap.get(cv::CAP_PROP_POS_MSEC)*1e6);
+					out<<ns<<' ';
+
 					grid.setImage(image);
 					out<<grid.recognizeDigits()<<'\n';
 					++n_done;
