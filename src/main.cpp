@@ -249,6 +249,25 @@ int main(int argc,char** argv){
 				config_f>>x>>y;
 				grid.setCorner(i,{x,y});
 			}
+		}else{
+			std::cout<<"Configuration file not found. Create a new file? (y/n) ";
+			std::string line;
+			while(true){
+				if(not std::getline(std::cin, line)){
+					std::cerr<<"Cannot read from stdin\n";
+					return 0;
+				}
+				switch(line[0]){ // safe, line is null-terminated
+					case 'y': case 'Y':
+						save_config=true; break;
+					case 'n': case 'N':
+						break;
+					default:
+						std::cout<<"(y/n) ";
+						continue;
+				}
+				break;
+			}
 		}
 
 		bool set_corners_to_default=!config_f; // empty file or read failed
