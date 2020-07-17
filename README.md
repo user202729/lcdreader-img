@@ -30,6 +30,7 @@ The command-line flag format must be `-<flag>=<value`. For example `-f=a.mp4`.
 * `P`: Toggle preview/grid.
 * `T`: Toggle showing only image.
 * `HJKL`: Move the output cursor.
+* `Shift+YUIO`: Move the most recently moved corner by 1 image pixel (depends on the zoom factor).
 * `Z`: Set the pixel under the output cursor to 0.
 * `X`: Set the pixel under the output cursor to 1.
 * `U1`: Allow undistorting the image. The image is undistorted assuming the pinhole camera model.

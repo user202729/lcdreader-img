@@ -126,6 +126,7 @@ void setOutCursor(cv::Point p){
 }
 
 int heldCorner=-1; // [0..4[, or -1. For manipulating the grid.corners with mouse.
+int lastMovedCorner=-1;
 cv::Point2d mouse;
 void mouseCallback(int event,int x,int y,int,void*){
 	mouse={(double)x/image_zoom,(double)y/image_zoom};
@@ -146,7 +147,7 @@ void mouseCallback(int event,int x,int y,int,void*){
 				}
 			}
 			if(best_i>=0){
-				heldCorner=best_i;
+				lastMovedCorner=heldCorner=best_i;
 				grid.setCorner(best_i,mouse);
 				render();
 			}
@@ -390,19 +391,36 @@ read_frame:
 				break;
 
 			{ /// Move corner
-				int cornerIndex;
-
 			case 'w':
-				cornerIndex=0; goto move_corner;
+				lastMovedCorner=0; goto move_corner;
 			case 's':
-				cornerIndex=1; goto move_corner;
+				lastMovedCorner=1; goto move_corner;
 			case 'e':
-				cornerIndex=2; goto move_corner;
+				lastMovedCorner=2; goto move_corner;
 			case 'd':
-				cornerIndex=3; goto move_corner;
+				lastMovedCorner=3; goto move_corner;
 move_corner:
-				grid.setCorner(cornerIndex,mouse);
+				grid.setCorner(lastMovedCorner,mouse);
 				render();
+				break;
+
+				int dx, dy;
+			case 'Y':
+				dx=-1; dy=0; goto move_corner_1;
+			case 'U':
+				dx=0; dy=1; goto move_corner_1;
+			case 'I':
+				dx=0; dy=-1; goto move_corner_1;
+			case 'O':
+				dx=1; dy=0; goto move_corner_1;
+move_corner_1:
+				if(lastMovedCorner>=0){
+					cv::Point2d const point=grid.getCorners()[lastMovedCorner];
+					grid.setCorner(lastMovedCorner, {point.x+dx/image_zoom, point.y+dy/image_zoom});
+					render();
+				}else{
+					std::cout<<"No corner moved\n";
+				}
 				break;
 			}
 
