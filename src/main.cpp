@@ -576,7 +576,7 @@ change_pixel:
 					auto ns=int64_t(cap.get(cv::CAP_PROP_POS_MSEC)*1e6);
 					out<<ns<<' ';
 
-					out<<digits<<'\n';
+					out<<digits<<std::endl;
 
 					++n_done;
 					auto current_diff=std::clock()-start;
