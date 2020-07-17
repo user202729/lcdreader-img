@@ -604,13 +604,22 @@ change_pixel:
 				double const minGridSpacing=stab::computeGridSpacing();
 				std::cerr<<"minGridSpacing="<<minGridSpacing<<'\n';
 
+				int64_t last_ns=-1;
+
 				// note: this function must be called with the most recently-read image from `cap` for correct timestamp output
 				auto const processImage=[&](cv::Mat image_){
 					/// Assume grid corners are correct w.r.t. image_.
 					grid.setImage(image=image_);
 					auto digits=grid.recognizeDigits();
 
-					auto ns=int64_t(cap.get(cv::CAP_PROP_POS_MSEC)*1e6);
+					auto const ns=int64_t(cap.get(cv::CAP_PROP_POS_MSEC)*1e6);
+					if(last_ns>=ns){
+						std::cerr<<"OpenCV's seek is broken.\n"
+							"See https://github.com/opencv/opencv/issues/4890 for more details.\n"
+							"Workaround: reencode the video with `ffmpeg -i <file> -bf 0 <output>`.\n";
+						assert(false);
+					}
+					last_ns=ns;
 					out<<ns<<' ';
 
 					out<<digits<<std::endl;
