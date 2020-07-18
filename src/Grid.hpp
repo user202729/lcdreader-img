@@ -31,7 +31,7 @@ struct Grid{
 	void drawAnchorInput(cv::Mat image);
 
 	/// Draw anchor points (excluding corners) on the transformed image
-	void drawAnchorTransformed(cv::Mat image);
+	void drawAnchorTransformed(cv::Mat image, double border);
 
 	/// Same as above, but with transparency (draw onto another image) and
 	/// zoom factor.
@@ -40,11 +40,12 @@ struct Grid{
 	/// Draw preview as red edges when the adjacent pixels differ.
 	void drawPreviewEdges(cv::Mat& image)const;
 
-	/// Draw horizontal/vertical grid lines, excluding borders.
-	void drawGrid(cv::Mat image);
+	/// Draw horizontal/vertical grid lines, including borders.
+	void drawGrid(cv::Mat image, double border);
 
 	/// Use warpPerspective to extract the screen region.
-	cv::Mat extractScreen(double zoom_factor);
+	/// Border is computed by screen pixel = zoom_factor * Mat pixel.
+	cv::Mat extractScreen(double zoom_factor, double border);
 
 	/// Set the image used by binarize.
 	/// Note that if the image is modified, setImage must be called again.

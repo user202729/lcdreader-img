@@ -42,6 +42,7 @@ char const* const window_name="lcdreader-img";
 char const* const outwin_name="output";
 int zoom_factor=15;
 double image_zoom=1;
+double border=0;
 
 
 int preview_alpha=35;
@@ -67,12 +68,12 @@ void render(){
 		cv::imshow(window_name,i1);
 	}
 
-	cv::Mat i1=grid.extractScreen(zoom_factor);
+	cv::Mat i1=grid.extractScreen(zoom_factor, border);
 	if(!image_only){
 		switch(preview_mode){
 			case Preview::NONE:
-				grid.drawAnchorTransformed(i1);
-				grid.drawGrid(i1);
+				grid.drawAnchorTransformed(i1, border);
+				grid.drawGrid(i1, border);
 				break;
 			case Preview::BLOCK:
 				grid.binarize();
@@ -105,7 +106,7 @@ void render(){
 
 		// draw out_cursor
 		cv::Scalar const border_color(0,0,255); // red
-		cv::Point const topleft=out_cursor*zoom_factor,
+		cv::Point const topleft{(cv::Point2d(out_cursor)+cv::Point2d(border,border))*zoom_factor},
 			v1{0,zoom_factor},v2{zoom_factor,0};
 		cv::line(i1,topleft,topleft+v1,border_color);
 		cv::line(i1,topleft,topleft+v2,border_color);
@@ -198,6 +199,7 @@ int main(int argc,char** argv){
 	{ h      | 10     | Grid height in pixels.                     }
 	{ f      | in.png | Image or video file name/URL.              }
 	{ zoom   | 15     | Zoom factor (pixel width) of output image. }
+	{ border | 0      | Border (experimental). Some features might work incorrectly with border!=0. }
 	{ inzoom | 1.0    | Zoom factor of input image.                }
 	{ s skip | 1      | Number of frames to skip.                  }
 	{ p play | false  | Auto-play the video on start.              }
@@ -226,6 +228,7 @@ int main(int argc,char** argv){
 
 	zoom_factor=args.get<int>("zoom");
 	image_zoom=args.get<double>("inzoom");
+	border=args.get<double>("border");
 
 	int width =image.cols;
 	int height=image.rows;

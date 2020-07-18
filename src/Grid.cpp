@@ -82,11 +82,8 @@ void Grid::drawAnchorInput(cv::Mat i1){
 		cv::circle(i1,FAC*p,3,cv::Scalar(255,255,0),-1 /* filled */);
 }
 
-void Grid::drawAnchorTransformed(cv::Mat image){
-	assert(image.rows%maxA==0);
-	assert(image.cols%maxB==0);
-	int const factor=image.rows/maxA;
-	assert(factor==image.cols/maxB);
+void Grid::drawAnchorTransformed(cv::Mat image, double border){
+	int const factor=std::round((double)image.rows/maxA-border*2);
 
 	int const radius=std::min(factor,3);
 	for(unsigned i=4;i<anchor_src.size();++i)
@@ -94,18 +91,20 @@ void Grid::drawAnchorTransformed(cv::Mat image){
 				radius,cv::Scalar(255,255,0),-1);
 }
 
-void Grid::drawGrid(cv::Mat image){
+void Grid::drawGrid(cv::Mat image, double border){
 	cv::Scalar color(0,0,0);
-	float factor;
-	factor=(float)image.rows/maxA;
-	for(int a=1;a<maxA;++a)
-		cv::line(image,{0,int(a*factor)},{image.cols,int(a*factor)},color);
-	factor=(float)image.cols/maxB;
-	for(int b=1;b<maxB;++b)
-		cv::line(image,{int(b*factor),0},{int(b*factor),image.rows},color);
+	auto const factor=image.rows/(2*border+maxA);
+	auto const point=[&](double x, double y)->cv::Point{
+		return {int((x+border)*factor),int((y+border)*factor)};
+	};
+
+	for(int a=0;a<=maxA;++a)
+		cv::line(image,point(0,a),point(maxB,a),color);
+	for(int b=0;b<=maxB;++b)
+		cv::line(image,point(b,0),point(b,maxA),color);
 }
 
-cv::Mat Grid::extractScreen(double zoom_factor){
+cv::Mat Grid::extractScreen(double zoom_factor, double border){
 	computeTransform();
 	assert(zoom_factor>0);
 
@@ -115,13 +114,15 @@ cv::Mat Grid::extractScreen(double zoom_factor){
 	else
 		cv::undistort(image,result,camera_matrix,dist_coeffs);
 
-	auto transform_scaled(transform);
+	auto transform1(transform);
 	for(int r=0;r<2;++r)
-	for(int c=0;c<3;++c)
-		transform_scaled(r,c)*=zoom_factor;
+	for(int c=0;c<3;++c){
+		transform1(r,c)+=border*transform1(2,c);
+		transform1(r,c)*=zoom_factor;
+	}
 
-	cv::warpPerspective(result,result,transform_scaled,
-			{int(maxB*zoom_factor),int(maxA*zoom_factor)});
+	cv::warpPerspective(result,result,transform1,
+			{int((maxB+border*2)*zoom_factor),int((maxA+border*2)*zoom_factor)});
 	return result;
 }
 
@@ -194,7 +195,7 @@ void Grid::binarize(){
 		return;
 
 	int const factor=7; // %2 != 0
-	cv::Mat img=extractScreen(factor);
+	cv::Mat img=extractScreen(factor, 0);
 	cv::cvtColor(img,img,cv::COLOR_BGR2GRAY);
 	cv::adaptiveThreshold(img,img,255,
 			// cv::ADAPTIVE_THRESH_GAUSSIAN_C,
