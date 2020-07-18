@@ -30,3 +30,4 @@ cv::Mat_<uint8_t> getDigitMat(std::string);
 int recognize(Digit_<float>);
 
 std::string recognizeDigits(cv::Mat m);
+char recognizeDigitTemplateMatching(cv::Mat_<uint8_t> m, double zoomFactor);

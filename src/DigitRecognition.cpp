@@ -114,3 +114,27 @@ std::string recognizeDigits(cv::Mat m){
 	}
 	return ans;
 }
+
+char recognizeDigitTemplateMatching(cv::Mat_<uint8_t> const image, double zoomFactor){
+	std::array<double, NDIGIT> result;
+
+	cv::Mat_<uint8_t> template_;
+	cv::Mat_<float> curResult;
+	for(int index=0; index<NDIGIT; ++index){
+		cv::resize(digits[index], template_, {}, zoomFactor, zoomFactor, cv::INTER_NEAREST);
+		cv::matchTemplate(image, template_, curResult, cv::TM_CCOEFF_NORMED);
+		double minimum;
+		cv::minMaxLoc(curResult, &minimum); // take the minimum because the mask is inverted
+		result[index]=minimum;
+	}
+
+	/*  // debug
+		cv::imshow("I3",image);
+		for(int index=0; index<NDIGIT; ++index){
+			std::cout<<name[index]<<' '
+				<<int(result[index]*1e5)<<'\n';
+		}
+		while(cv::waitKey()!='q');
+	*/
+	return name[std::min_element(begin(result), end(result))-result.begin()];
+}
