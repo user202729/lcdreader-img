@@ -175,8 +175,6 @@ void Grid::drawPreviewEdges(cv::Mat& image)const{
 	assert(binarize_cached);
 	cv::Vec3b color(0,0,255); // red
 
-	cv::line(image,corners[0],corners[1],cv::Scalar(0,0,0));
-
 	auto fx=image.rows/(double)getMaxA();
 	auto fy=image.cols/(double)getMaxB();
 
