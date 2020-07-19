@@ -198,6 +198,7 @@ int main(int argc,char** argv){
 	{ w      | 10     | Grid width in pixels.                      }
 	{ h      | 10     | Grid height in pixels.                     }
 	{ f      | in.png | Image or video file name/URL.              }
+	{ o output | /tmp/out.txt | Output file path. Used in some functions. }
 	{ zoom   | 15     | Zoom factor (pixel width) of output image. }
 	{ border | 0      | Border (experimental). Some features might work incorrectly with border!=0. }
 	{ inzoom | 1.0    | Zoom factor of input image.                }
@@ -591,7 +592,7 @@ change_pixel:
 			case 'o':
 				/// Output
 			{
-				std::ofstream out("out.txt");
+				std::ofstream out(args.get<std::string>("o"));
 
 				std::clock_t start=std::clock();
 				int n_done=0;
