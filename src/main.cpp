@@ -286,6 +286,13 @@ int main(int argc,char** argv){
 		config_f.close();
 	}
 
+
+	auto const do_save_config=[&]{
+		std::ofstream config_f(config_file_name);
+		for(auto p:grid.getCorners())
+			config_f<<p.x<<' '<<p.y<<'\n';
+	};
+
 	render();
 
 	cv::setMouseCallback(window_name,mouseCallback,nullptr);
@@ -645,6 +652,11 @@ change_pixel:
 				// it's assumed that there's no motion in all the middle frames
 
 				if(stabilization_method==StabilizationMethod::StepToFirst){
+					if(save_config){
+						do_save_config();
+						save_config=false;
+					}
+
 					stab::setRefImage(image);
 
 					double const minGridSpacing=stab::computeGridSpacing();
@@ -757,9 +769,7 @@ change_pixel:
 break_outer:
 
 	if(save_config){
-		std::ofstream config_f(config_file_name);
-		for(auto p:grid.getCorners())
-			config_f<<p.x<<' '<<p.y<<'\n';
+		do_save_config();
 	}
 
 #if USE_X11
