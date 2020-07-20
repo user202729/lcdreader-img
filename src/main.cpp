@@ -475,7 +475,35 @@ move_corner_1:
 
 			case 'a':
 				/// Automatically adjust
-				std::cout<<"unimplemented\n";
+				{
+					auto [string, score]=grid.recognizeDigitsTemplateMatching();
+					std::cout<<"String="<<string<<". Is it correct? (Y/n) ";
+					std::string line; std::getline(std::cin, line);
+					if(line=="y" or line==""){
+						for(double step=1; step>=0.01; step/=2){
+							while(true){
+								for(int corner=0; corner<4; ++corner){
+									auto const oldValue=grid.getCorners()[corner];
+									double dx=step, dy=0;
+									for(int _=0; _<4; ++_, std::tie(dx, dy)=std::pair(dy,-dx)){
+										grid.setCorner(corner, {oldValue.x+dx, oldValue.y+dy});
+										auto [string1, score1]=grid.recognizeDigitsTemplateMatching();
+										if(string1==string and score1<score){
+											score=score1;
+											render();
+											goto continue_outer;
+										}
+									}
+									grid.setCorner(corner, oldValue);
+								}
+								break;
+continue_outer:;
+							}
+						}
+					}else{
+						std::cout<<"Adjust the grid manually until the recognized string is correct\n";
+					}
+				}
 				break;
 
 			case 'u':

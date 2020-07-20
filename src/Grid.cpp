@@ -241,26 +241,32 @@ std::string Grid::recognizeDigits(){
 		assert(data.type()==CV_8U);
 		return ::recognizeDigits(data);
 	}else{
-		auto const zoomFactor=3;
-		auto const border=0.5;
-
-		cv::Mat image_=extractScreen(zoomFactor,border);
-		cv::cvtColor(image_,image_,cv::COLOR_BGR2GRAY);
-		assert(image_.type()==CV_8U or not(std::cerr<<image_.type()<<'\n'));
-		cv::Mat_<uint8_t> image=image_;
-
-		assert(image.cols==int((WIDTH*4+3+border*2)*zoomFactor));
-		assert(image.rows==int((HEIGHT+border*2)*zoomFactor));
-
-		std::string result;
-		for(int i=0; i<4;++i){
-			auto const offset=(WIDTH+1)*i;
-			result+=::recognizeDigitTemplateMatching(
-					image.colRange(offset*zoomFactor,(offset+border*2+WIDTH)*zoomFactor),
-					zoomFactor);
-		}
-		return result;
+		return recognizeDigitsTemplateMatching().first;
 	}
+}
+
+std::pair<std::string, double> Grid::recognizeDigitsTemplateMatching(){
+	auto const zoomFactor=3;
+	auto const border=0.5;
+
+	cv::Mat image_=extractScreen(zoomFactor,border);
+	cv::cvtColor(image_,image_,cv::COLOR_BGR2GRAY);
+	assert(image_.type()==CV_8U or not(std::cerr<<image_.type()<<'\n'));
+	cv::Mat_<uint8_t> image=image_;
+
+	assert(image.cols==int((WIDTH*4+3+border*2)*zoomFactor));
+	assert(image.rows==int((HEIGHT+border*2)*zoomFactor));
+
+	std::string result;
+	double totalCenterScore=0;
+	for(int i=0; i<4;++i){
+		auto const offset=(WIDTH+1)*i;
+		auto const cur=::recognizeDigitTemplateMatchingExtended(
+				image.colRange(offset*zoomFactor,(offset+border*2+WIDTH)*zoomFactor),
+				zoomFactor);
+		result+=cur.digit; totalCenterScore+=cur.centerScore;
+	}
+	return {std::move(result), totalCenterScore};
 }
 
 void Grid::setUndistort(bool value){

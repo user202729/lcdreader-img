@@ -10,7 +10,7 @@ INCLUDEDIRS :=
 
 CXX ?= g++
 CCEXT ?= cpp
-CCFLAGS1 := -fdiagnostics-color=always -O2 -pipe -g -std=c++11 -Wall -Wextra -Werror -pedantic `pkg-config --cflags opencv4`
+CCFLAGS1 := -fdiagnostics-color=always -O2 -pipe -g -std=c++17 -Wall -Wextra -Werror -pedantic `pkg-config --cflags opencv4`
 
 CCLINK1 := -pipe `pkg-config --libs opencv4`
 

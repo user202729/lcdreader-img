@@ -62,8 +62,10 @@ struct Grid{
 
 	signed char getData(int a,int b)const;
 
-	/// Ignores data_manual value.
 	std::string recognizeDigits();
+
+	// second: sum of centerScore from recognizeDigitTemplateMatchingExtended.
+	std::pair<std::string, double> recognizeDigitsTemplateMatching();
 
 	void setDataManual(int a,int b,int8_t value);
 

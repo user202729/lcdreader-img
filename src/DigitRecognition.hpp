@@ -27,7 +27,16 @@ inline int indexOf(char c){
 cv::Mat_<uint8_t> getDigitMat(std::string);
 
 /// Return the most likely index, assume foreground color is larger.
+/// Old algorithm.
 int recognize(Digit_<float>);
 
+/// Old algorithm.
 std::string recognizeDigits(cv::Mat m);
-char recognizeDigitTemplateMatching(cv::Mat_<uint8_t> m, double zoomFactor);
+
+struct RecognitionResult{
+	char digit;
+	double bestScore; // lower is better
+	double centerScore; // of the recognized digit at the center. >= bestScore
+};
+RecognitionResult recognizeDigitTemplateMatchingExtended(cv::Mat_<uint8_t> const& m, double zoomFactor);
+char recognizeDigitTemplateMatching(cv::Mat_<uint8_t> const& m, double zoomFactor);

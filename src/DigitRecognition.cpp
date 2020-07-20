@@ -115,26 +115,35 @@ std::string recognizeDigits(cv::Mat m){
 	return ans;
 }
 
-char recognizeDigitTemplateMatching(cv::Mat_<uint8_t> const image, double zoomFactor){
-	std::array<double, NDIGIT> result;
+RecognitionResult recognizeDigitTemplateMatchingExtended(cv::Mat_<uint8_t> const& image, double zoomFactor){
+	double bestScore=DBL_MAX;
+	double centerScore;
+	int bestIndex;
 
 	cv::Mat_<uint8_t> template_;
 	cv::Mat_<float> curResult;
 	for(int index=0; index<NDIGIT; ++index){
 		cv::resize(digits[index], template_, {}, zoomFactor, zoomFactor, cv::INTER_NEAREST);
 		cv::matchTemplate(image, template_, curResult, cv::TM_CCOEFF_NORMED);
-		double minimum;
-		cv::minMaxLoc(curResult, &minimum); // take the minimum because the mask is inverted
-		result[index]=minimum;
+		double curScore;
+		cv::minMaxLoc(curResult, &curScore); // take the minimum because the mask is inverted
+		assert(curResult.rows!=-1 and curResult.cols!=-1);
+
+		if(curScore<bestScore){
+			bestIndex=index;
+			bestScore=curScore;
+			centerScore=curResult(curResult.rows/2, curResult.cols/2);
+		}
 	}
 
-	/*  // debug
-		cv::imshow("I3",image);
-		for(int index=0; index<NDIGIT; ++index){
-			std::cout<<name[index]<<' '
-				<<int(result[index]*1e5)<<'\n';
-		}
-		while(cv::waitKey()!='q');
-	*/
-	return name[std::min_element(begin(result), end(result))-result.begin()];
+	assert(bestScore<DBL_MAX);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+	return {name[bestIndex], bestScore, centerScore};
+#pragma GCC diagnostic pop
+}
+
+char recognizeDigitTemplateMatching(cv::Mat_<uint8_t> const& image, double zoomFactor){
+	return recognizeDigitTemplateMatchingExtended(image, zoomFactor).digit;
 }
