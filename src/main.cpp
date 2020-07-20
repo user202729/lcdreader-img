@@ -494,7 +494,6 @@ move_corner_1:
 										auto [string1, score1]=grid.recognizeDigitsTemplateMatching();
 										if(string1==string and score1<score){
 											score=score1;
-											render();
 											goto continue_outer;
 										}
 									}
