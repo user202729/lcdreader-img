@@ -22,28 +22,28 @@ The command-line flag format must be `-<flag>=<value`. For example `-f=a.mp4`.
 
 ### Keyboard shortcuts:
 
-* `WESD`: Move the corresponding grid corner (assume QWERTY keyboard layout) to the
+* `wesd`: Move the corresponding grid corner (assume QWERTY keyboard layout) to the
   mouse pointer. Drag-and-drop the corners is also supported.
-* `Q`: Quit.
+* `q`: Quit.
 * `78`: Change preview binary opacity.
 * `90`: Change edge.
-* `P`: Toggle preview/grid.
-* `T`: Toggle showing only image.
-* `HJKL`: Move the output cursor.
-* `Shift+YUIO`: Move the most recently moved corner by 1 image pixel (depends on the zoom factor).
-* `Z`: Set the pixel under the output cursor to 0.
-* `X`: Set the pixel under the output cursor to 1.
-* `U1`: Allow undistorting the image. The image is undistorted assuming the pinhole camera model.
-* `U0`: Disallow undistorting the image, only homography transformation is used. This is the default and is preferred if the image part is small (the distortion is not significant) or there are on a few corner/anchor points.
-* `Shift+H`: Go back 99 frames.
-* `Shift+L`: Go forward 101 frames.
-* `G`: Go to frame number (read from stdin)
-* `N`: Go to next video frame.
-* `Space`: Toggle play/pause.
-* `RF`: Refresh the image.
-* `C`: Set data manual according to a hexadecimal digit pattern (enter 4 digits)
-* `RC`: Recognize the hexadecimal digits. Output to stdout.
-* `O`: Output.
+* `p`: Toggle preview/grid.
+* `t`: Toggle showing only image.
+* `hjkl`: Move the output cursor.
+* `YUIO`: Move the most recently moved corner by 1 image pixel (depends on the zoom factor).
+* `z`: Set the pixel under the output cursor to 0.
+* `x`: Set the pixel under the output cursor to 1.
+* `u1`: Allow undistorting the image. The image is undistorted assuming the pinhole camera model.
+* `u0`: Disallow undistorting the image, only homography transformation is used. This is the default and is preferred if the image part is small (the distortion is not significant) or there are on a few corner/anchor points.
+* `H`: Go back 99 frames.
+* `L`: Go forward 101 frames.
+* `g`: Go to frame number (read from stdin)
+* `n`: Go to next video frame.
+* `<space>`: Toggle play/pause.
+* `rf`: Refresh the image.
+* `c`: Set data manual according to a hexadecimal digit pattern (enter 4 digits)
+* `rc`: Recognize the hexadecimal digits. Output to stdout.
+* `o`: Output.
 
 ### Mouse control:
 
