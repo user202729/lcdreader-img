@@ -302,7 +302,10 @@ int main(int argc,char** argv){
 
 #if USE_X11
 	Display* dpy = XOpenDisplay(NULL);
-	KeyCode const shift_key_code = XKeysymToKeycode( dpy, XK_Shift_L );
+	std::array<KeyCode, 2> shiftKeyCodes{{
+		XKeysymToKeycode(dpy, XK_Shift_L),
+		XKeysymToKeycode(dpy, XK_Shift_R)
+	}};
 #endif
 
 
@@ -315,9 +318,10 @@ int main(int argc,char** argv){
 		if('a'<=key and key<='z'){
 			char keys_return[32];
 			XQueryKeymap( dpy, keys_return );
-			if( keys_return[ shift_key_code>>3 ] & ( 1<<(shift_key_code&7) ) ){
+			if(std::any_of(begin(shiftKeyCodes), end(shiftKeyCodes),[&](KeyCode keyCode){
+				return keys_return[ keyCode>>3 ] & ( 1<<(keyCode&7) );
+			}))
 				key=key-'a'+'A';
-			}
 		}
 #endif
 		switch(key){
