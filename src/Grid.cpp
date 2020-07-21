@@ -122,7 +122,8 @@ cv::Mat Grid::extractScreen(double zoom_factor, double border){
 	}
 
 	cv::warpPerspective(result,result,transform1,
-			{int((maxB+border*2)*zoom_factor),int((maxA+border*2)*zoom_factor)});
+			{int((maxB+border*2)*zoom_factor),int((maxA+border*2)*zoom_factor)},
+			cv::INTER_AREA);
 	return result;
 }
 
