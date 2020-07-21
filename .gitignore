@@ -6,3 +6,4 @@ in.png
 out.txt
 config.txt
 ignore/
+**/.vimrc
