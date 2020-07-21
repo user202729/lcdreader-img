@@ -253,18 +253,11 @@ std::pair<std::string, double> Grid::recognizeDigitsTemplateMatching(){
 	cv::Mat image_=extractScreen(zoomFactor,border);
 	cv::cvtColor(image_,image_,cv::COLOR_BGR2GRAY);
 	assert(image_.type()==CV_8U or not(std::cerr<<image_.type()<<'\n'));
-	cv::Mat_<uint8_t> image=image_;
-
-	assert(image.cols==int((WIDTH*4+3+border*2)*zoomFactor));
-	assert(image.rows==int((HEIGHT+border*2)*zoomFactor));
 
 	std::string result;
 	double totalCenterScore=0;
-	for(int i=0; i<4;++i){
-		auto const offset=(WIDTH+1)*i;
-		auto const cur=::recognizeDigitTemplateMatchingExtended(
-				image.colRange(offset*zoomFactor,(offset+border*2+WIDTH)*zoomFactor),
-				zoomFactor);
+	for(auto digit: iterateDigits(image_, zoomFactor, border)){
+		auto const cur=::recognizeDigitTemplateMatchingExtended(digit, zoomFactor);
 		result+=cur.digit; totalCenterScore+=cur.centerScore;
 	}
 	return {std::move(result), totalCenterScore};

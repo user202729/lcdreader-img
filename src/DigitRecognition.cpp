@@ -147,3 +147,15 @@ RecognitionResult recognizeDigitTemplateMatchingExtended(cv::Mat_<uint8_t> const
 char recognizeDigitTemplateMatching(cv::Mat_<uint8_t> const& image, double zoomFactor){
 	return recognizeDigitTemplateMatchingExtended(image, zoomFactor).digit;
 }
+
+std::array<cv::Mat, 4> iterateDigits(cv::Mat image, double zoomFactor, double border){
+	assert(image.cols==int((WIDTH*4+3+border*2)*zoomFactor));
+	assert(image.rows==int((HEIGHT+border*2)*zoomFactor));
+
+	std::array<cv::Mat, 4> result;
+	for(int i=0; i<4;++i){
+		auto const offset=(WIDTH+1)*i;
+		result[i]=image.colRange(offset*zoomFactor,(offset+border*2+WIDTH)*zoomFactor);
+	}
+	return result;
+}

@@ -40,3 +40,6 @@ struct RecognitionResult{
 };
 RecognitionResult recognizeDigitTemplateMatchingExtended(cv::Mat_<uint8_t> const& m, double zoomFactor);
 char recognizeDigitTemplateMatching(cv::Mat_<uint8_t> const& m, double zoomFactor);
+
+// return colRanges from the input matrix. Each resulting digit is surrounded by border.
+std::array<cv::Mat, 4> iterateDigits(cv::Mat m, double zoomFactor, double border);
