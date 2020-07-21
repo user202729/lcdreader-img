@@ -503,6 +503,8 @@ move_corner_1:
 continue_outer:;
 							}
 						}
+						std::cout<<"Adjusted\n";
+						render();
 					}else{
 						std::cout<<"Adjust the grid manually until the recognized string is correct\n";
 					}
